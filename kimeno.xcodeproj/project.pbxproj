@@ -1,0 +1,556 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		0D19B7872F315BBA00CE8BDE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0D19B76D2F315BB800CE8BDE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D19B7742F315BB800CE8BDE;
+			remoteInfo = kimeno;
+		};
+		0D19B7912F315BBA00CE8BDE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0D19B76D2F315BB800CE8BDE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D19B7742F315BB800CE8BDE;
+			remoteInfo = kimeno;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0D19B7752F315BB800CE8BDE /* kimeno.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = kimeno.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D19B7862F315BBA00CE8BDE /* kimenoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kimenoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D19B7902F315BBA00CE8BDE /* kimenoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = kimenoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		0D19B7772F315BB800CE8BDE /* kimeno */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = kimeno;
+			sourceTree = "<group>";
+		};
+		0D19B7892F315BBA00CE8BDE /* kimenoTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = kimenoTests;
+			sourceTree = "<group>";
+		};
+		0D19B7932F315BBA00CE8BDE /* kimenoUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = kimenoUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0D19B7722F315BB800CE8BDE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0D19B7832F315BBA00CE8BDE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0D19B78D2F315BBA00CE8BDE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0D19B76C2F315BB800CE8BDE = {
+			isa = PBXGroup;
+			children = (
+				0D19B7772F315BB800CE8BDE /* kimeno */,
+				0D19B7892F315BBA00CE8BDE /* kimenoTests */,
+				0D19B7932F315BBA00CE8BDE /* kimenoUITests */,
+				0D19B7762F315BB800CE8BDE /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0D19B7762F315BB800CE8BDE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0D19B7752F315BB800CE8BDE /* kimeno.app */,
+				0D19B7862F315BBA00CE8BDE /* kimenoTests.xctest */,
+				0D19B7902F315BBA00CE8BDE /* kimenoUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0D19B7742F315BB800CE8BDE /* kimeno */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0D19B79A2F315BBB00CE8BDE /* Build configuration list for PBXNativeTarget "kimeno" */;
+			buildPhases = (
+				0D19B7712F315BB800CE8BDE /* Sources */,
+				0D19B7722F315BB800CE8BDE /* Frameworks */,
+				0D19B7732F315BB800CE8BDE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				0D19B7772F315BB800CE8BDE /* kimeno */,
+			);
+			name = kimeno;
+			packageProductDependencies = (
+			);
+			productName = kimeno;
+			productReference = 0D19B7752F315BB800CE8BDE /* kimeno.app */;
+			productType = "com.apple.product-type.application";
+		};
+		0D19B7852F315BBA00CE8BDE /* kimenoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0D19B79D2F315BBB00CE8BDE /* Build configuration list for PBXNativeTarget "kimenoTests" */;
+			buildPhases = (
+				0D19B7822F315BBA00CE8BDE /* Sources */,
+				0D19B7832F315BBA00CE8BDE /* Frameworks */,
+				0D19B7842F315BBA00CE8BDE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0D19B7882F315BBA00CE8BDE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0D19B7892F315BBA00CE8BDE /* kimenoTests */,
+			);
+			name = kimenoTests;
+			packageProductDependencies = (
+			);
+			productName = kimenoTests;
+			productReference = 0D19B7862F315BBA00CE8BDE /* kimenoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		0D19B78F2F315BBA00CE8BDE /* kimenoUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0D19B7A02F315BBB00CE8BDE /* Build configuration list for PBXNativeTarget "kimenoUITests" */;
+			buildPhases = (
+				0D19B78C2F315BBA00CE8BDE /* Sources */,
+				0D19B78D2F315BBA00CE8BDE /* Frameworks */,
+				0D19B78E2F315BBA00CE8BDE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				0D19B7922F315BBA00CE8BDE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				0D19B7932F315BBA00CE8BDE /* kimenoUITests */,
+			);
+			name = kimenoUITests;
+			packageProductDependencies = (
+			);
+			productName = kimenoUITests;
+			productReference = 0D19B7902F315BBA00CE8BDE /* kimenoUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0D19B76D2F315BB800CE8BDE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					0D19B7742F315BB800CE8BDE = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					0D19B7852F315BBA00CE8BDE = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 0D19B7742F315BB800CE8BDE;
+					};
+					0D19B78F2F315BBA00CE8BDE = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 0D19B7742F315BB800CE8BDE;
+					};
+				};
+			};
+			buildConfigurationList = 0D19B7702F315BB800CE8BDE /* Build configuration list for PBXProject "kimeno" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 0D19B76C2F315BB800CE8BDE;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 0D19B7762F315BB800CE8BDE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0D19B7742F315BB800CE8BDE /* kimeno */,
+				0D19B7852F315BBA00CE8BDE /* kimenoTests */,
+				0D19B78F2F315BBA00CE8BDE /* kimenoUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0D19B7732F315BB800CE8BDE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0D19B7842F315BBA00CE8BDE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0D19B78E2F315BBA00CE8BDE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0D19B7712F315BB800CE8BDE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0D19B7822F315BBA00CE8BDE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		0D19B78C2F315BBA00CE8BDE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0D19B7882F315BBA00CE8BDE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0D19B7742F315BB800CE8BDE /* kimeno */;
+			targetProxy = 0D19B7872F315BBA00CE8BDE /* PBXContainerItemProxy */;
+		};
+		0D19B7922F315BBA00CE8BDE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0D19B7742F315BB800CE8BDE /* kimeno */;
+			targetProxy = 0D19B7912F315BBA00CE8BDE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		0D19B7982F315BBB00CE8BDE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		0D19B7992F315BBB00CE8BDE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		0D19B79B2F315BBB00CE8BDE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = kimeno/kimeno.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"kimeno/Preview Content\"";
+				DEVELOPMENT_TEAM = Z89YWARNA3;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evaidon.kimeno;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		0D19B79C2F315BBB00CE8BDE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = kimeno/kimeno.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"kimeno/Preview Content\"";
+				DEVELOPMENT_TEAM = Z89YWARNA3;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evaidon.kimeno;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		0D19B79E2F315BBB00CE8BDE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z89YWARNA3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evaidon.kimenoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/kimeno.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/kimeno";
+			};
+			name = Debug;
+		};
+		0D19B79F2F315BBB00CE8BDE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z89YWARNA3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.6;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evaidon.kimenoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/kimeno.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/kimeno";
+			};
+			name = Release;
+		};
+		0D19B7A12F315BBB00CE8BDE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z89YWARNA3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evaidon.kimenoUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = kimeno;
+			};
+			name = Debug;
+		};
+		0D19B7A22F315BBB00CE8BDE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = Z89YWARNA3;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.evaidon.kimenoUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = kimeno;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0D19B7702F315BB800CE8BDE /* Build configuration list for PBXProject "kimeno" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D19B7982F315BBB00CE8BDE /* Debug */,
+				0D19B7992F315BBB00CE8BDE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0D19B79A2F315BBB00CE8BDE /* Build configuration list for PBXNativeTarget "kimeno" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D19B79B2F315BBB00CE8BDE /* Debug */,
+				0D19B79C2F315BBB00CE8BDE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0D19B79D2F315BBB00CE8BDE /* Build configuration list for PBXNativeTarget "kimenoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D19B79E2F315BBB00CE8BDE /* Debug */,
+				0D19B79F2F315BBB00CE8BDE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0D19B7A02F315BBB00CE8BDE /* Build configuration list for PBXNativeTarget "kimenoUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D19B7A12F315BBB00CE8BDE /* Debug */,
+				0D19B7A22F315BBB00CE8BDE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0D19B76D2F315BB800CE8BDE /* Project object */;
+}
