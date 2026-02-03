@@ -14,6 +14,7 @@ import Vision
 @main
 struct kimenoApp: App {
     @StateObject private var screenCapture = ScreenCaptureManager()
+    @StateObject private var historyStore = CaptureHistoryStore()
     
     init() {
         // Request notification permissions
@@ -23,12 +24,13 @@ struct kimenoApp: App {
     var body: some Scene {
         MenuBarExtra("Kimeno", systemImage: "app.fill") {
             Button("Capture") {
+                historyStore.closeHistoryWindow()
                 screenCapture.startAreaSelection()
             }
             .keyboardShortcut("c", modifiers: [.command, .shift])
             
             Button("History") {
-                // Handle history action
+                historyStore.showHistoryWindow()
             }
             
             Divider()
@@ -38,6 +40,364 @@ struct kimenoApp: App {
             }
         }
         .menuBarExtraStyle(.menu)
+        .onChange(of: screenCapture.lastExtractedText) { _, newText in
+            if let text = newText {
+                historyStore.addCapture(text: text)
+                screenCapture.lastExtractedText = nil
+            }
+        }
+    }
+}
+
+// MARK: - Capture History Model
+
+struct CaptureEntry: Identifiable, Codable, Hashable {
+    let id: UUID
+    let title: String
+    let text: String
+    let timestamp: Date
+    
+    init(text: String) {
+        self.id = UUID()
+        self.timestamp = Date()
+        self.text = text
+        // Generate title from first line or first few words
+        self.title = CaptureEntry.generateTitle(from: text)
+    }
+    
+    private static func generateTitle(from text: String) -> String {
+        let firstLine = text.components(separatedBy: .newlines).first ?? text
+        let trimmed = firstLine.trimmingCharacters(in: .whitespaces)
+        if trimmed.count <= 50 {
+            return trimmed.isEmpty ? "Untitled" : trimmed
+        }
+        return String(trimmed.prefix(47)) + "..."
+    }
+}
+
+// MARK: - History Store
+
+@MainActor
+class CaptureHistoryStore: ObservableObject {
+    @Published var captures: [CaptureEntry] = []
+    private var historyWindow: NSWindow?
+    
+    private let storageKey = "captureHistory"
+    private let maxEntries = 100
+    
+    init() {
+        loadHistory()
+    }
+    
+    func addCapture(text: String) {
+        let entry = CaptureEntry(text: text)
+        captures.insert(entry, at: 0)
+        
+        // Keep only the most recent entries
+        if captures.count > maxEntries {
+            captures = Array(captures.prefix(maxEntries))
+        }
+        
+        saveHistory()
+    }
+    
+    func deleteCapture(at offsets: IndexSet) {
+        captures.remove(atOffsets: offsets)
+        saveHistory()
+    }
+    
+    func deleteCapture(id: UUID) {
+        captures.removeAll { $0.id == id }
+        saveHistory()
+    }
+    
+    func clearHistory() {
+        captures.removeAll()
+        saveHistory()
+    }
+    
+    func copyToClipboard(_ entry: CaptureEntry) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(entry.text, forType: .string)
+    }
+    
+    private func loadHistory() {
+        guard let data = UserDefaults.standard.data(forKey: storageKey) else { return }
+        do {
+            captures = try JSONDecoder().decode([CaptureEntry].self, from: data)
+        } catch {
+            print("Failed to load history: \(error)")
+        }
+    }
+    
+    private func saveHistory() {
+        do {
+            let data = try JSONEncoder().encode(captures)
+            UserDefaults.standard.set(data, forKey: storageKey)
+        } catch {
+            print("Failed to save history: \(error)")
+        }
+    }
+    
+    private var clickOutsideMonitor: Any?
+    
+    func showHistoryWindow() {
+        // Toggle - close if already visible
+        if let existingWindow = historyWindow, existingWindow.isVisible {
+            closeHistoryWindow()
+            return
+        }
+        
+        let historyView = HistoryView(store: self)
+        let hostingController = NSHostingController(rootView: historyView)
+        
+        // Create a simple borderless window
+        let window = NSWindow(contentViewController: hostingController)
+        window.styleMask = [.borderless]
+        window.isReleasedWhenClosed = false
+        window.level = .popUpMenu
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.hasShadow = true
+        
+        // Position below the mouse cursor (which should be near the menu bar icon)
+        let mouseLocation = NSEvent.mouseLocation
+        let panelWidth: CGFloat = 320
+        let panelHeight: CGFloat = 400
+        
+        if let screen = NSScreen.screens.first(where: { $0.frame.contains(mouseLocation) }) ?? NSScreen.main {
+            let menuBarHeight: CGFloat = 24
+            
+            // Center the panel horizontally on the mouse position
+            var x = mouseLocation.x - panelWidth / 2
+            
+            // Keep within screen bounds
+            x = max(screen.visibleFrame.minX + 10, x)
+            x = min(screen.visibleFrame.maxX - panelWidth - 10, x)
+            
+            // Position just below the menu bar
+            let y = screen.frame.maxY - menuBarHeight - panelHeight - 5
+            
+            window.setFrame(NSRect(x: x, y: y, width: panelWidth, height: panelHeight), display: true)
+        }
+        
+        self.historyWindow = window
+        
+        // Set up click-outside monitor
+        clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+            guard let self = self else { return }
+            let clickLocation = NSEvent.mouseLocation
+            if let window = self.historyWindow, !window.frame.contains(clickLocation) {
+                DispatchQueue.main.async {
+                    self.closeHistoryWindow()
+                }
+            }
+        }
+        
+        window.orderFrontRegardless()
+        NSApp.activate(ignoringOtherApps: true)
+    }
+    
+    func closeHistoryWindow() {
+        if let monitor = clickOutsideMonitor {
+            NSEvent.removeMonitor(monitor)
+            clickOutsideMonitor = nil
+        }
+        historyWindow?.close()
+        historyWindow = nil
+    }
+}
+
+// MARK: - History View
+
+struct HistoryView: View {
+    @ObservedObject var store: CaptureHistoryStore
+    @State private var selectedEntry: CaptureEntry?
+    @State private var searchText = ""
+    
+    var filteredCaptures: [CaptureEntry] {
+        if searchText.isEmpty {
+            return store.captures
+        }
+        return store.captures.filter {
+            $0.title.localizedCaseInsensitiveContains(searchText) ||
+            $0.text.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            // Header
+            HStack {
+                Text("History")
+                    .font(.headline)
+                Spacer()
+                Text("\(store.captures.count)")
+                    .font(.caption)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.secondary.opacity(0.2))
+                    .cornerRadius(8)
+            }
+            .padding(.horizontal, 12)
+            .padding(.top, 12)
+            .padding(.bottom, 8)
+            
+            // Search bar
+            HStack {
+                Image(systemName: "magnifyingglass")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 12))
+                TextField("Search...", text: $searchText)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 13))
+                if !searchText.isEmpty {
+                    Button(action: { searchText = "" }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.secondary)
+                            .font(.system(size: 12))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(8)
+            .background(Color(NSColor.textBackgroundColor))
+            .cornerRadius(8)
+            .padding(.horizontal, 12)
+            .padding(.bottom, 8)
+            
+            Divider()
+                .padding(.horizontal, 12)
+            
+            if filteredCaptures.isEmpty {
+                VStack(spacing: 16) {
+                    Spacer()
+                    
+                    Image(systemName: searchText.isEmpty ? "text.viewfinder" : "magnifyingglass")
+                        .font(.system(size: 48, weight: .thin))
+                        .foregroundColor(.secondary.opacity(0.5))
+                    
+                    VStack(spacing: 4) {
+                        Text(searchText.isEmpty ? "No captures yet" : "No matches found")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.secondary)
+                        
+                        if searchText.isEmpty {
+                            Text("Use ⌘⇧C to capture text from screen")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary.opacity(0.7))
+                        }
+                    }
+                    
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 2) {
+                        ForEach(filteredCaptures) { entry in
+                            CaptureRow(entry: entry, store: store)
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                }
+            }
+            
+            // Bottom toolbar - only show when there are captures
+            if !store.captures.isEmpty {
+                Divider()
+                    .padding(.horizontal, 12)
+                
+                HStack {
+                    Spacer()
+                    Button("Clear All") {
+                        store.clearHistory()
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.red)
+                    .font(.system(size: 11))
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+            }
+        }
+        .frame(width: 320, height: 400)
+        .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
+        .cornerRadius(12)
+        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+    }
+}
+
+// MARK: - Visual Effect View (for blur background)
+
+struct VisualEffectView: NSViewRepresentable {
+    let material: NSVisualEffectView.Material
+    let blendingMode: NSVisualEffectView.BlendingMode
+    
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = material
+        view.blendingMode = blendingMode
+        view.state = .active
+        return view
+    }
+    
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
+        nsView.material = material
+        nsView.blendingMode = blendingMode
+    }
+}
+
+struct CaptureRow: View {
+    let entry: CaptureEntry
+    let store: CaptureHistoryStore
+    @State private var isHovered = false
+    
+    // Only show preview if there's more text than the title
+    private var hasMoreText: Bool {
+        entry.text.count > entry.title.count || entry.text.contains("\n")
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 3) {
+            HStack {
+                Text(entry.title)
+                    .font(.system(size: 13, weight: .medium))
+                    .lineLimit(1)
+                Spacer()
+                Text(entry.timestamp, style: .relative)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+            }
+            
+            if hasMoreText {
+                // Show additional lines beyond the title
+                Text(entry.text.components(separatedBy: .newlines).dropFirst().joined(separator: " "))
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .lineLimit(2)
+            }
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background(isHovered ? Color.primary.opacity(0.08) : Color.clear)
+        .cornerRadius(6)
+        .onHover { hovering in
+            isHovered = hovering
+        }
+        .onTapGesture {
+            store.copyToClipboard(entry)
+        }
+        .contextMenu {
+            Button("Copy") {
+                store.copyToClipboard(entry)
+            }
+            Divider()
+            Button("Delete", role: .destructive) {
+                store.deleteCapture(id: entry.id)
+            }
+        }
     }
 }
 
@@ -45,6 +405,8 @@ struct kimenoApp: App {
 
 @MainActor
 class ScreenCaptureManager: ObservableObject {
+    @Published var lastExtractedText: String?
+    
     private var selectionWindows: [SelectionWindow] = []
     private var selectionCoordinator: SelectionCoordinator?
     private var globalEventMonitor: Any?
@@ -263,10 +625,11 @@ class ScreenCaptureManager: ObservableObject {
             return
         }
         
-        // Copy extracted text to clipboard
+        // Copy extracted text to clipboard and save to history
         if !extractedText.isEmpty {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(extractedText, forType: .string)
+            lastExtractedText = extractedText
             showNotification(text: extractedText)
         } else {
             showNotification(text: nil)
