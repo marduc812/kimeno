@@ -15,6 +15,7 @@ import Vision
 struct kimenoApp: App {
     @StateObject private var screenCapture = ScreenCaptureManager()
     @StateObject private var historyStore = CaptureHistoryStore()
+    @StateObject private var settingsManager = SettingsManager()
     
     init() {
         // Request notification permissions
@@ -22,21 +23,39 @@ struct kimenoApp: App {
     }
     
     var body: some Scene {
-        MenuBarExtra("Kimeno", systemImage: "app.fill") {
-            Button("Capture") {
+        MenuBarExtra("Kimeno", systemImage: "text.viewfinder") {
+            Button(action: {
                 historyStore.closeHistoryWindow()
+                settingsManager.closeSettingsWindow()
                 screenCapture.startAreaSelection()
+            }) {
+                Label("Capture", systemImage: "camera.viewfinder")
             }
             .keyboardShortcut("c", modifiers: [.command, .shift])
             
-            Button("History") {
+            Button(action: {
+                settingsManager.closeSettingsWindow()
                 historyStore.showHistoryWindow()
+            }) {
+                Label("History", systemImage: "clock")
             }
             
             Divider()
             
-            Button("Quit") {
+            Button(action: {
+                historyStore.closeHistoryWindow()
+                settingsManager.showSettingsWindow()
+            }) {
+                Label("Settings...", systemImage: "gear")
+            }
+            .keyboardShortcut(",", modifiers: .command)
+            
+            Divider()
+            
+            Button(action: {
                 NSApplication.shared.terminate(nil)
+            }) {
+                Label("Quit", systemImage: "power")
             }
         }
         .menuBarExtraStyle(.menu)
@@ -205,6 +224,200 @@ class CaptureHistoryStore: ObservableObject {
         }
         historyWindow?.close()
         historyWindow = nil
+    }
+}
+
+// MARK: - Settings Manager
+
+@MainActor
+class SettingsManager: ObservableObject {
+    @AppStorage("autoCopyToClipboard") var autoCopyToClipboard = true
+    @AppStorage("playSound") var playSound = true
+    @AppStorage("recognitionLanguage") var recognitionLanguage = "en-US"
+    @AppStorage("launchAtLogin") var launchAtLogin = false
+    
+    private var settingsWindow: NSWindow?
+    
+    func showSettingsWindow() {
+        // If window exists and is visible, bring it to front
+        if let existingWindow = settingsWindow, existingWindow.isVisible {
+            existingWindow.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+        
+        let settingsView = SettingsView(settings: self)
+        let hostingController = NSHostingController(rootView: settingsView)
+        
+        let window = NSWindow(contentViewController: hostingController)
+        window.title = "Settings"
+        window.styleMask = [.titled, .closable]
+        window.setContentSize(NSSize(width: 450, height: 300))
+        window.center()
+        window.isReleasedWhenClosed = false
+        
+        self.settingsWindow = window
+        
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+    
+    func closeSettingsWindow() {
+        settingsWindow?.close()
+        settingsWindow = nil
+    }
+}
+
+// MARK: - Settings View
+
+struct SettingsView: View {
+    @ObservedObject var settings: SettingsManager
+    @State private var selectedTab = 0
+    
+    var body: some View {
+        TabView(selection: $selectedTab) {
+            GeneralSettingsView(settings: settings)
+                .tabItem {
+                    Image(systemName: "gearshape")
+                    Text("General")
+                }
+                .tag(0)
+            
+            ShortcutsSettingsView()
+                .tabItem {
+                    Image(systemName: "keyboard")
+                    Text("Shortcuts")
+                }
+                .tag(1)
+            
+            AboutSettingsView()
+                .tabItem {
+                    Image(systemName: "info.circle")
+                    Text("About")
+                }
+                .tag(2)
+        }
+        .frame(width: 450, height: 300)
+    }
+}
+
+// MARK: - General Settings Tab
+
+struct GeneralSettingsView: View {
+    @ObservedObject var settings: SettingsManager
+    
+    let languages = [
+        ("en-US", "English (US)"),
+        ("en-GB", "English (UK)"),
+        ("de-DE", "German"),
+        ("fr-FR", "French"),
+        ("es-ES", "Spanish"),
+        ("it-IT", "Italian"),
+        ("pt-BR", "Portuguese (Brazil)"),
+        ("zh-Hans", "Chinese (Simplified)"),
+        ("zh-Hant", "Chinese (Traditional)"),
+        ("ja-JP", "Japanese"),
+        ("ko-KR", "Korean")
+    ]
+    
+    var body: some View {
+        Form {
+            Section {
+                Toggle("Launch at login", isOn: $settings.launchAtLogin)
+                Toggle("Copy text to clipboard automatically", isOn: $settings.autoCopyToClipboard)
+                Toggle("Play sound on capture", isOn: $settings.playSound)
+            }
+            
+            Section {
+                Picker("Recognition language:", selection: $settings.recognitionLanguage) {
+                    ForEach(languages, id: \.0) { code, name in
+                        Text(name).tag(code)
+                    }
+                }
+                .pickerStyle(.menu)
+            }
+        }
+        .formStyle(.grouped)
+        .padding(.top, 10)
+    }
+}
+
+// MARK: - Shortcuts Settings Tab
+
+struct ShortcutsSettingsView: View {
+    var body: some View {
+        Form {
+            Section {
+                HStack {
+                    Text("Capture screen area")
+                    Spacer()
+                    Text("⌘⇧C")
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.secondary.opacity(0.2))
+                        .cornerRadius(6)
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                }
+                
+                HStack {
+                    Text("Open History")
+                    Spacer()
+                    Text("Click menu")
+                        .foregroundColor(.secondary)
+                        .font(.system(size: 12))
+                }
+                
+                HStack {
+                    Text("Cancel capture")
+                    Spacer()
+                    Text("ESC")
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.secondary.opacity(0.2))
+                        .cornerRadius(6)
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                }
+            }
+        }
+        .formStyle(.grouped)
+        .padding(.top, 10)
+    }
+}
+
+// MARK: - About Settings Tab
+
+struct AboutSettingsView: View {
+    var body: some View {
+        VStack(spacing: 16) {
+            Spacer()
+            
+            Image(systemName: "text.viewfinder")
+                .font(.system(size: 64, weight: .thin))
+                .foregroundColor(.accentColor)
+            
+            VStack(spacing: 4) {
+                Text("Kimeno")
+                    .font(.title)
+                    .fontWeight(.semibold)
+                
+                Text("Version 1.0.0")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            }
+            
+            Text("A simple OCR tool for macOS.\nCapture any text on your screen.")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            Spacer()
+            
+            Text("© 2026 Kimeno")
+                .font(.caption2)
+                .foregroundColor(.secondary.opacity(0.7))
+                .padding(.bottom, 16)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -591,6 +804,11 @@ class ScreenCaptureManager: ObservableObject {
     }
     
     private func extractTextFromImage(_ image: CGImage) {
+        // Read settings from UserDefaults
+        let autoCopyToClipboard = UserDefaults.standard.object(forKey: "autoCopyToClipboard") as? Bool ?? true
+        let playSound = UserDefaults.standard.object(forKey: "playSound") as? Bool ?? true
+        let recognitionLanguage = UserDefaults.standard.string(forKey: "recognitionLanguage") ?? "en-US"
+        
         var extractedText = ""
         
         // Create a request handler
@@ -616,6 +834,7 @@ class ScreenCaptureManager: ObservableObject {
         // Configure for accurate recognition
         request.recognitionLevel = .accurate
         request.usesLanguageCorrection = true
+        request.recognitionLanguages = [recognitionLanguage]
         
         // Perform the request
         do {
@@ -625,11 +844,19 @@ class ScreenCaptureManager: ObservableObject {
             return
         }
         
-        // Copy extracted text to clipboard and save to history
+        // Copy extracted text to clipboard if enabled
         if !extractedText.isEmpty {
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(extractedText, forType: .string)
+            if autoCopyToClipboard {
+                NSPasteboard.general.clearContents()
+                NSPasteboard.general.setString(extractedText, forType: .string)
+            }
             lastExtractedText = extractedText
+            
+            // Play sound if enabled
+            if playSound {
+                NSSound(named: .init("Funk"))?.play()
+            }
+            
             showNotification(text: extractedText)
         } else {
             showNotification(text: nil)
