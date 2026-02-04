@@ -10,12 +10,68 @@ import AppKit
 import ScreenCaptureKit
 import UserNotifications
 import Vision
+import Carbon.HIToolbox
+import Combine
+
+// MARK: - Global Hotkey Manager
+
+@MainActor
+class HotkeyManager: ObservableObject {
+    private var globalMonitor: Any?
+    
+    var onCapture: (@MainActor () -> Void)?
+    var onHistory: (@MainActor () -> Void)?
+    
+    private var captureShortcut: CustomShortcut = .defaultCapture
+    private var historyShortcut: CustomShortcut = .defaultHistory
+    
+    func updateShortcuts(capture: CustomShortcut, history: CustomShortcut) {
+        captureShortcut = capture
+        historyShortcut = history
+        // Restart monitoring with new shortcuts if already monitoring
+        if globalMonitor != nil {
+            startMonitoring()
+        }
+    }
+    
+    func startMonitoring() {
+        stopMonitoring()
+        
+        // Capture shortcuts as values to avoid accessing self in the closure
+        let captureShortcutCopy = captureShortcut
+        let historyShortcutCopy = historyShortcut
+        
+        globalMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            let keyCode = event.keyCode
+            let modifiers = event.modifierFlags.intersection([.command, .shift, .option, .control]).rawValue
+            
+            if captureShortcutCopy.matches(keyCode: keyCode, modifiers: modifiers) {
+                Task { @MainActor in
+                    self?.onCapture?()
+                }
+            } else if historyShortcutCopy.matches(keyCode: keyCode, modifiers: modifiers) {
+                Task { @MainActor in
+                    self?.onHistory?()
+                }
+            }
+        }
+    }
+    
+    func stopMonitoring() {
+        if let monitor = globalMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalMonitor = nil
+        }
+    }
+}
 
 @main
 struct kimenoApp: App {
     @StateObject private var screenCapture = ScreenCaptureManager()
     @StateObject private var historyStore = CaptureHistoryStore()
     @StateObject private var settingsManager = SettingsManager()
+    @StateObject private var hotkeyManager = HotkeyManager()
+    @State private var hasSetupHotkeys = false
     
     init() {
         // Request notification permissions
@@ -23,40 +79,19 @@ struct kimenoApp: App {
     }
     
     var body: some Scene {
-        MenuBarExtra("Kimeno", systemImage: "text.viewfinder") {
-            Button(action: {
-                historyStore.closeHistoryWindow()
-                settingsManager.closeSettingsWindow()
-                screenCapture.startAreaSelection()
-            }) {
-                Label("Capture", systemImage: "camera.viewfinder")
-            }
-            .keyboardShortcut("c", modifiers: [.command, .shift])
-            
-            Button(action: {
-                settingsManager.closeSettingsWindow()
-                historyStore.showHistoryWindow()
-            }) {
-                Label("History", systemImage: "clock")
-            }
-            
-            Divider()
-            
-            Button(action: {
-                historyStore.closeHistoryWindow()
-                settingsManager.showSettingsWindow()
-            }) {
-                Label("Settings...", systemImage: "gear")
-            }
-            .keyboardShortcut(",", modifiers: .command)
-            
-            Divider()
-            
-            Button(action: {
-                NSApplication.shared.terminate(nil)
-            }) {
-                Label("Quit", systemImage: "power")
-            }
+        MenuBarExtra {
+            MenuContentView(
+                screenCapture: screenCapture,
+                historyStore: historyStore,
+                settingsManager: settingsManager,
+                hotkeyManager: hotkeyManager,
+                hasSetupHotkeys: $hasSetupHotkeys,
+                performCapture: performCapture,
+                performShowHistory: performShowHistory
+            )
+        } label: {
+            Text("κ")
+                .font(.system(size: 14, weight: .medium))
         }
         .menuBarExtraStyle(.menu)
         .onChange(of: screenCapture.lastExtractedText) { _, newText in
@@ -65,6 +100,80 @@ struct kimenoApp: App {
                 screenCapture.lastExtractedText = nil
             }
         }
+        .onChange(of: settingsManager.captureShortcut) { _, newValue in
+            hotkeyManager.updateShortcuts(capture: newValue, history: settingsManager.historyShortcut)
+        }
+        .onChange(of: settingsManager.historyShortcut) { _, newValue in
+            hotkeyManager.updateShortcuts(capture: settingsManager.captureShortcut, history: newValue)
+        }
+    }
+    
+    private func performCapture() {
+        historyStore.closeHistoryWindow()
+        settingsManager.closeSettingsWindow()
+        screenCapture.startAreaSelection()
+    }
+    
+    private func performShowHistory() {
+        settingsManager.closeSettingsWindow()
+        historyStore.showHistoryWindow()
+    }
+}
+
+// MARK: - Menu Content View
+
+struct MenuContentView: View {
+    @ObservedObject var screenCapture: ScreenCaptureManager
+    @ObservedObject var historyStore: CaptureHistoryStore
+    @ObservedObject var settingsManager: SettingsManager
+    @ObservedObject var hotkeyManager: HotkeyManager
+    @Binding var hasSetupHotkeys: Bool
+    let performCapture: () -> Void
+    let performShowHistory: () -> Void
+    
+    var body: some View {
+        Group {
+            Button("Capture", action: performCapture)
+                .modifier(DynamicKeyboardShortcut(shortcut: settingsManager.captureShortcut))
+            
+            Button("History", action: performShowHistory)
+                .modifier(DynamicKeyboardShortcut(shortcut: settingsManager.historyShortcut))
+            
+            Divider()
+            
+            Button("Settings...") {
+                historyStore.closeHistoryWindow()
+                settingsManager.showSettingsWindow()
+            }
+            .keyboardShortcut(",", modifiers: .command)
+            
+            Divider()
+            
+            Button("Quit") {
+                NSApplication.shared.terminate(nil)
+            }
+            .keyboardShortcut("q", modifiers: .command)
+        }
+        .onAppear {
+            setupHotkeysIfNeeded()
+        }
+    }
+    
+    private func setupHotkeysIfNeeded() {
+        guard !hasSetupHotkeys else { return }
+        hasSetupHotkeys = true
+        
+        hotkeyManager.updateShortcuts(capture: settingsManager.captureShortcut, history: settingsManager.historyShortcut)
+        hotkeyManager.onCapture = { [weak historyStore, weak settingsManager, weak screenCapture] in
+            historyStore?.closeHistoryWindow()
+            settingsManager?.closeSettingsWindow()
+            screenCapture?.startAreaSelection()
+        }
+        hotkeyManager.onHistory = { [weak settingsManager, weak historyStore] in
+            settingsManager?.closeSettingsWindow()
+            historyStore?.showHistoryWindow()
+        }
+        hotkeyManager.startMonitoring()
     }
 }
 
@@ -230,13 +339,144 @@ class CaptureHistoryStore: ObservableObject {
 // MARK: - Settings Manager
 
 @MainActor
+// MARK: - Custom Shortcut
+
+struct CustomShortcut: Codable, Equatable, Sendable {
+    var keyCode: UInt16
+    var modifiers: UInt
+    
+    // Default capture shortcut: Cmd+Shift+C (keyCode 8 = 'C')
+    // Command = 1048576, Shift = 131072, combined = 1179648
+    static nonisolated let defaultCapture = CustomShortcut(keyCode: 8, modifiers: 1179648)
+    
+    // Default history shortcut: Cmd+Shift+H (keyCode 4 = 'H')
+    static nonisolated let defaultHistory = CustomShortcut(keyCode: 4, modifiers: 1179648)
+    
+    var displayString: String {
+        var parts: [String] = []
+        let flags = NSEvent.ModifierFlags(rawValue: modifiers)
+        
+        if flags.contains(.control) { parts.append("⌃") }
+        if flags.contains(.option) { parts.append("⌥") }
+        if flags.contains(.shift) { parts.append("⇧") }
+        if flags.contains(.command) { parts.append("⌘") }
+        
+        if let keyString = Self.keyCodeToString(keyCode) {
+            parts.append(keyString)
+        }
+        
+        return parts.joined()
+    }
+    
+    // Convert to SwiftUI KeyboardShortcut for native menu display
+    var keyboardShortcut: KeyboardShortcut? {
+        guard let character = Self.keyCodeToCharacter(keyCode) else { return nil }
+        
+        var eventModifiers: SwiftUI.EventModifiers = []
+        let flags = NSEvent.ModifierFlags(rawValue: modifiers)
+        
+        if flags.contains(.command) { eventModifiers.insert(.command) }
+        if flags.contains(.shift) { eventModifiers.insert(.shift) }
+        if flags.contains(.option) { eventModifiers.insert(.option) }
+        if flags.contains(.control) { eventModifiers.insert(.control) }
+        
+        return KeyboardShortcut(KeyEquivalent(character), modifiers: eventModifiers)
+    }
+    
+    private static func keyCodeToCharacter(_ keyCode: UInt16) -> Character? {
+        let keyCodeMap: [UInt16: Character] = [
+            0: "a", 1: "s", 2: "d", 3: "f", 4: "h", 5: "g", 6: "z", 7: "x",
+            8: "c", 9: "v", 11: "b", 12: "q", 13: "w", 14: "e", 15: "r",
+            16: "y", 17: "t", 18: "1", 19: "2", 20: "3", 21: "4", 22: "6",
+            23: "5", 24: "=", 25: "9", 26: "7", 27: "-", 28: "8", 29: "0",
+            30: "]", 31: "o", 32: "u", 33: "[", 34: "i", 35: "p", 37: "l",
+            38: "j", 39: "'", 40: "k", 41: ";", 42: "\\", 43: ",", 44: "/",
+            45: "n", 46: "m", 47: "."
+        ]
+        return keyCodeMap[keyCode]
+    }
+    
+    private static func keyCodeToString(_ keyCode: UInt16) -> String? {
+        let keyCodeMap: [UInt16: String] = [
+            0: "A", 1: "S", 2: "D", 3: "F", 4: "H", 5: "G", 6: "Z", 7: "X",
+            8: "C", 9: "V", 11: "B", 12: "Q", 13: "W", 14: "E", 15: "R",
+            16: "Y", 17: "T", 18: "1", 19: "2", 20: "3", 21: "4", 22: "6",
+            23: "5", 24: "=", 25: "9", 26: "7", 27: "-", 28: "8", 29: "0",
+            30: "]", 31: "O", 32: "U", 33: "[", 34: "I", 35: "P", 37: "L",
+            38: "J", 39: "'", 40: "K", 41: ";", 42: "\\", 43: ",", 44: "/",
+            45: "N", 46: "M", 47: ".", 50: "`",
+            36: "↩", 48: "⇥", 49: "Space", 51: "⌫", 53: "ESC",
+            123: "←", 124: "→", 125: "↓", 126: "↑",
+            122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5", 97: "F6",
+            98: "F7", 100: "F8", 101: "F9", 109: "F10", 103: "F11", 111: "F12"
+        ]
+        return keyCodeMap[keyCode]
+    }
+    
+    func matches(keyCode eventKeyCode: UInt16, modifiers eventModifiers: UInt) -> Bool {
+        return eventKeyCode == keyCode && eventModifiers == modifiers
+    }
+}
+
+// MARK: - Dynamic Keyboard Shortcut Modifier
+
+struct DynamicKeyboardShortcut: ViewModifier {
+    let shortcut: CustomShortcut
+    
+    func body(content: Content) -> some View {
+        if let ks = shortcut.keyboardShortcut {
+            content.keyboardShortcut(ks)
+        } else {
+            content
+        }
+    }
+}
+
 class SettingsManager: ObservableObject {
     @AppStorage("autoCopyToClipboard") var autoCopyToClipboard = true
     @AppStorage("playSound") var playSound = true
     @AppStorage("recognitionLanguage") var recognitionLanguage = "en-US"
     @AppStorage("launchAtLogin") var launchAtLogin = false
     
+    @Published var captureShortcut: CustomShortcut {
+        didSet { saveShortcuts() }
+    }
+    @Published var historyShortcut: CustomShortcut {
+        didSet { saveShortcuts() }
+    }
+    
     private var settingsWindow: NSWindow?
+    
+    init() {
+        // Load shortcuts from UserDefaults
+        if let data = UserDefaults.standard.data(forKey: "captureShortcut"),
+           let shortcut = try? JSONDecoder().decode(CustomShortcut.self, from: data) {
+            captureShortcut = shortcut
+        } else {
+            captureShortcut = .defaultCapture
+        }
+        
+        if let data = UserDefaults.standard.data(forKey: "historyShortcut"),
+           let shortcut = try? JSONDecoder().decode(CustomShortcut.self, from: data) {
+            historyShortcut = shortcut
+        } else {
+            historyShortcut = .defaultHistory
+        }
+    }
+    
+    private func saveShortcuts() {
+        if let data = try? JSONEncoder().encode(captureShortcut) {
+            UserDefaults.standard.set(data, forKey: "captureShortcut")
+        }
+        if let data = try? JSONEncoder().encode(historyShortcut) {
+            UserDefaults.standard.set(data, forKey: "historyShortcut")
+        }
+    }
+    
+    func resetToDefaults() {
+        captureShortcut = .defaultCapture
+        historyShortcut = .defaultHistory
+    }
     
     func showSettingsWindow() {
         // If window exists and is visible, bring it to front
@@ -252,7 +492,7 @@ class SettingsManager: ObservableObject {
         let window = NSWindow(contentViewController: hostingController)
         window.title = "Settings"
         window.styleMask = [.titled, .closable]
-        window.setContentSize(NSSize(width: 450, height: 300))
+        window.setContentSize(NSSize(width: 450, height: 320))
         window.center()
         window.isReleasedWhenClosed = false
         
@@ -275,29 +515,84 @@ struct SettingsView: View {
     @State private var selectedTab = 0
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            GeneralSettingsView(settings: settings)
-                .tabItem {
-                    Image(systemName: "gearshape")
-                    Text("General")
+        VStack(spacing: 0) {
+            // Custom tab bar with icons
+            HStack(spacing: 0) {
+                Spacer()
+                
+                SettingsTabButton(
+                    title: "General",
+                    icon: "gearshape",
+                    isSelected: selectedTab == 0
+                ) {
+                    selectedTab = 0
                 }
-                .tag(0)
+                
+                SettingsTabButton(
+                    title: "Shortcuts",
+                    icon: "keyboard",
+                    isSelected: selectedTab == 1
+                ) {
+                    selectedTab = 1
+                }
+                
+                SettingsTabButton(
+                    title: "About",
+                    icon: "info.circle",
+                    isSelected: selectedTab == 2
+                ) {
+                    selectedTab = 2
+                }
+                
+                Spacer()
+            }
+            .padding(.top, 12)
             
-            ShortcutsSettingsView()
-                .tabItem {
-                    Image(systemName: "keyboard")
-                    Text("Shortcuts")
-                }
-                .tag(1)
+            Divider()
+                .padding(.top, 8)
             
-            AboutSettingsView()
-                .tabItem {
-                    Image(systemName: "info.circle")
-                    Text("About")
+            // Tab content
+            VStack {
+                if selectedTab == 0 {
+                    GeneralSettingsView(settings: settings)
+                } else if selectedTab == 1 {
+                    ShortcutsSettingsView(settings: settings)
+                } else {
+                    AboutSettingsView()
                 }
-                .tag(2)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding()
         }
-        .frame(width: 450, height: 300)
+        .frame(width: 450, height: 320)
+        .background(Color(NSColor.windowBackgroundColor))
+    }
+}
+
+// MARK: - Settings Tab Button
+
+struct SettingsTabButton: View {
+    let title: String
+    let icon: String
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 20))
+                Text(title)
+                    .font(.system(size: 11))
+            }
+            .frame(width: 80, height: 50)
+            .foregroundColor(isSelected ? .accentColor : .secondary)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(isSelected ? Color.accentColor.opacity(0.15) : Color.clear)
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -345,28 +640,25 @@ struct GeneralSettingsView: View {
 // MARK: - Shortcuts Settings Tab
 
 struct ShortcutsSettingsView: View {
+    @ObservedObject var settings: SettingsManager
+    
     var body: some View {
         Form {
-            Section {
+            Section(header: Text("Customizable Shortcuts")) {
                 HStack {
                     Text("Capture screen area")
                     Spacer()
-                    Text("⌘⇧C")
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.secondary.opacity(0.2))
-                        .cornerRadius(6)
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    ShortcutRecorderButton(shortcut: $settings.captureShortcut)
                 }
                 
                 HStack {
                     Text("Open History")
                     Spacer()
-                    Text("Click menu")
-                        .foregroundColor(.secondary)
-                        .font(.system(size: 12))
+                    ShortcutRecorderButton(shortcut: $settings.historyShortcut)
                 }
-                
+            }
+            
+            Section(header: Text("Fixed Shortcuts")) {
                 HStack {
                     Text("Cancel capture")
                     Spacer()
@@ -377,10 +669,120 @@ struct ShortcutsSettingsView: View {
                         .cornerRadius(6)
                         .font(.system(size: 12, weight: .medium, design: .monospaced))
                 }
+                
+                HStack {
+                    Text("Settings")
+                    Spacer()
+                    Text("⌘,")
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.secondary.opacity(0.2))
+                        .cornerRadius(6)
+                        .font(.system(size: 12, weight: .medium, design: .monospaced))
+                }
+            }
+            
+            Section {
+                Button("Reset to Defaults") {
+                    settings.resetToDefaults()
+                }
+                .foregroundColor(.red)
             }
         }
         .formStyle(.grouped)
         .padding(.top, 10)
+    }
+}
+
+// MARK: - Shortcut Recorder Button
+
+struct ShortcutRecorderButton: View {
+    @Binding var shortcut: CustomShortcut
+    @State private var isRecording = false
+    
+    var body: some View {
+        Button(action: {
+            isRecording = true
+        }) {
+            HStack(spacing: 4) {
+                if isRecording {
+                    Text("Press keys...")
+                        .foregroundColor(.accentColor)
+                } else {
+                    Text(shortcut.displayString)
+                }
+            }
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isRecording ? Color.accentColor.opacity(0.2) : Color.secondary.opacity(0.2))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .stroke(isRecording ? Color.accentColor : Color.clear, lineWidth: 2)
+            )
+            .font(.system(size: 12, weight: .medium, design: .monospaced))
+        }
+        .buttonStyle(.plain)
+        .background(
+            ShortcutRecorderHelper(isRecording: $isRecording, shortcut: $shortcut)
+        )
+    }
+}
+
+// MARK: - Shortcut Recorder Helper (NSViewRepresentable for key capture)
+
+struct ShortcutRecorderHelper: NSViewRepresentable {
+    @Binding var isRecording: Bool
+    @Binding var shortcut: CustomShortcut
+    
+    func makeNSView(context: Context) -> ShortcutRecorderNSView {
+        let view = ShortcutRecorderNSView()
+        view.onKeyEvent = { keyCode, modifiers in
+            // Only accept shortcuts with at least Command or Control
+            let flags = NSEvent.ModifierFlags(rawValue: modifiers)
+            if flags.contains(.command) || flags.contains(.control) {
+                shortcut = CustomShortcut(keyCode: keyCode, modifiers: modifiers)
+                isRecording = false
+            }
+        }
+        view.onCancel = {
+            isRecording = false
+        }
+        return view
+    }
+    
+    func updateNSView(_ nsView: ShortcutRecorderNSView, context: Context) {
+        if isRecording {
+            DispatchQueue.main.async {
+                nsView.window?.makeFirstResponder(nsView)
+            }
+        }
+    }
+}
+
+class ShortcutRecorderNSView: NSView {
+    var onKeyEvent: ((UInt16, UInt) -> Void)?
+    var onCancel: (() -> Void)?
+    
+    override var acceptsFirstResponder: Bool { true }
+    
+    override func keyDown(with event: NSEvent) {
+        // Escape cancels recording
+        if event.keyCode == 53 {
+            onCancel?()
+            return
+        }
+        
+        // Ignore modifier-only key presses
+        let modifierKeys: Set<UInt16> = [54, 55, 56, 57, 58, 59, 60, 61, 62, 63] // Various modifier key codes
+        if modifierKeys.contains(event.keyCode) {
+            return
+        }
+        
+        let modifiers = event.modifierFlags.intersection([.command, .shift, .option, .control]).rawValue
+        onKeyEvent?(event.keyCode, modifiers)
     }
 }
 
@@ -391,8 +793,8 @@ struct AboutSettingsView: View {
         VStack(spacing: 16) {
             Spacer()
             
-            Image(systemName: "text.viewfinder")
-                .font(.system(size: 64, weight: .thin))
+            Text("κ")
+                .font(.system(size: 72, weight: .light))
                 .foregroundColor(.accentColor)
             
             VStack(spacing: 4) {
@@ -486,9 +888,15 @@ struct HistoryView: View {
                 VStack(spacing: 16) {
                     Spacer()
                     
-                    Image(systemName: searchText.isEmpty ? "text.viewfinder" : "magnifyingglass")
-                        .font(.system(size: 48, weight: .thin))
-                        .foregroundColor(.secondary.opacity(0.5))
+                    if searchText.isEmpty {
+                        Text("κ")
+                            .font(.system(size: 56, weight: .light))
+                            .foregroundColor(.secondary.opacity(0.5))
+                    } else {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 48, weight: .thin))
+                            .foregroundColor(.secondary.opacity(0.5))
+                    }
                     
                     VStack(spacing: 4) {
                         Text(searchText.isEmpty ? "No captures yet" : "No matches found")
