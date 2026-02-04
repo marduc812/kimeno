@@ -8,10 +8,8 @@
 import Testing
 @testable import kimeno
 
-struct kimenoTests {
-
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-    }
-
-}
+// Main test suite entry point
+// Individual test files:
+// - CaptureEntryTests.swift: Tests for CaptureEntry model
+// - CustomShortcutTests.swift: Tests for CustomShortcut model
+// - CaptureHistoryStoreTests.swift: Tests for history store functionality

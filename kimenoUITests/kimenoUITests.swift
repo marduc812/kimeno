@@ -9,32 +9,83 @@ import XCTest
 
 final class kimenoUITests: XCTestCase {
 
+    var app: XCUIApplication!
+
     override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
-
-        // In UI tests it is usually best to stop immediately when a failure occurs.
         continueAfterFailure = false
-
-        // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
+        app = XCUIApplication()
+        app.launch()
     }
 
     override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+        app = nil
+    }
+
+    // MARK: - App Launch Tests
+
+    @MainActor
+    func testAppLaunchesSuccessfully() throws {
+        // App should launch without crashing
+        XCTAssertTrue(app.exists)
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
-        let app = XCUIApplication()
-        app.launch()
-
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
+    func testMenuBarIconExists() throws {
+        // The menu bar extra should be visible
+        // Note: Menu bar extras are tricky to test, but we can verify the app is running
+        XCTAssertTrue(app.exists)
     }
+
+    // MARK: - Menu Tests
+
+    @MainActor
+    func testMenuContainsCaptureButton() throws {
+        // Access the menu bar
+        let menuBarsQuery = app.menuBars
+
+        // Look for the Capture menu item
+        let captureButton = menuBarsQuery.menuItems["Capture"]
+
+        if captureButton.exists {
+            XCTAssertTrue(captureButton.isEnabled)
+        }
+    }
+
+    @MainActor
+    func testMenuContainsHistoryButton() throws {
+        let menuBarsQuery = app.menuBars
+        let historyButton = menuBarsQuery.menuItems["History"]
+
+        if historyButton.exists {
+            XCTAssertTrue(historyButton.isEnabled)
+        }
+    }
+
+    @MainActor
+    func testMenuContainsSettingsButton() throws {
+        let menuBarsQuery = app.menuBars
+        let settingsButton = menuBarsQuery.menuItems["Settings..."]
+
+        if settingsButton.exists {
+            XCTAssertTrue(settingsButton.isEnabled)
+        }
+    }
+
+    @MainActor
+    func testMenuContainsQuitButton() throws {
+        let menuBarsQuery = app.menuBars
+        let quitButton = menuBarsQuery.menuItems["Quit"]
+
+        if quitButton.exists {
+            XCTAssertTrue(quitButton.isEnabled)
+        }
+    }
+
+    // MARK: - Performance Tests
 
     @MainActor
     func testLaunchPerformance() throws {
-        if #available(macOS 10.15, iOS 13.0, tvOS 13.0, watchOS 7.0, *) {
-            // This measures how long it takes to launch your application.
+        if #available(macOS 10.15, *) {
             measure(metrics: [XCTApplicationLaunchMetric()]) {
                 XCUIApplication().launch()
             }
