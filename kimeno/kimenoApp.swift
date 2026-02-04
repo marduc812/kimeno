@@ -12,6 +12,7 @@ import UserNotifications
 import Vision
 import Carbon.HIToolbox
 import Combine
+import ServiceManagement
 
 // MARK: - Global Hotkey Manager
 
@@ -436,7 +437,24 @@ class SettingsManager: ObservableObject {
     @AppStorage("autoCopyToClipboard") var autoCopyToClipboard = true
     @AppStorage("playSound") var playSound = true
     @AppStorage("recognitionLanguage") var recognitionLanguage = "en-US"
-    @AppStorage("launchAtLogin") var launchAtLogin = false
+    
+    var launchAtLogin: Bool {
+        get {
+            SMAppService.mainApp.status == .enabled
+        }
+        set {
+            objectWillChange.send()
+            do {
+                if newValue {
+                    try SMAppService.mainApp.register()
+                } else {
+                    try SMAppService.mainApp.unregister()
+                }
+            } catch {
+                print("Failed to \(newValue ? "enable" : "disable") launch at login: \(error)")
+            }
+        }
+    }
     
     @Published var captureShortcut: CustomShortcut {
         didSet { saveShortcuts() }
@@ -586,6 +604,7 @@ struct SettingsTabButton: View {
                     .font(.system(size: 11))
             }
             .frame(width: 80, height: 50)
+            .contentShape(Rectangle())
             .foregroundColor(isSelected ? .accentColor : .secondary)
             .background(
                 RoundedRectangle(cornerRadius: 8)
@@ -658,30 +677,6 @@ struct ShortcutsSettingsView: View {
                 }
             }
             
-            Section(header: Text("Fixed Shortcuts")) {
-                HStack {
-                    Text("Cancel capture")
-                    Spacer()
-                    Text("ESC")
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.secondary.opacity(0.2))
-                        .cornerRadius(6)
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
-                }
-                
-                HStack {
-                    Text("Settings")
-                    Spacer()
-                    Text("⌘,")
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.secondary.opacity(0.2))
-                        .cornerRadius(6)
-                        .font(.system(size: 12, weight: .medium, design: .monospaced))
-                }
-            }
-            
             Section {
                 Button("Reset to Defaults") {
                     settings.resetToDefaults()
@@ -710,6 +705,7 @@ struct ShortcutRecorderButton: View {
                         .foregroundColor(.accentColor)
                 } else {
                     Text(shortcut.displayString)
+                        .tracking(2)
                 }
             }
             .padding(.horizontal, 10)
@@ -790,16 +786,15 @@ class ShortcutRecorderNSView: NSView {
 
 struct AboutSettingsView: View {
     var body: some View {
-        VStack(spacing: 16) {
-            Spacer()
-            
+        VStack(spacing: 12) {
             Text("κ")
-                .font(.system(size: 72, weight: .light))
+                .font(.system(size: 56, weight: .light))
                 .foregroundColor(.accentColor)
+                .padding(.top, 8)
             
             VStack(spacing: 4) {
                 Text("Kimeno")
-                    .font(.title)
+                    .font(.title2)
                     .fontWeight(.semibold)
                 
                 Text("Version 1.0.0")
@@ -817,7 +812,6 @@ struct AboutSettingsView: View {
             Text("© 2026 Kimeno")
                 .font(.caption2)
                 .foregroundColor(.secondary.opacity(0.7))
-                .padding(.bottom, 16)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
