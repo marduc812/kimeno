@@ -99,6 +99,9 @@ struct HistoryView: View {
         .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
         .cornerRadius(12)
         .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+        .onExitCommand {
+            store.closeHistoryWindow()
+        }
     }
 }
 

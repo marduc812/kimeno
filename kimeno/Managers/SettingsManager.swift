@@ -11,6 +11,7 @@ class SettingsManager: ObservableObject {
     @AppStorage("autoCopyToClipboard") var autoCopyToClipboard = true
     @AppStorage("playSound") var playSound = true
     @AppStorage("recognitionLanguage") var recognitionLanguage = "en-US"
+    @AppStorage("lineAwareOCR") var lineAwareOCR = true
 
     var launchAtLogin: Bool {
         get {

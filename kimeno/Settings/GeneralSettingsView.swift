@@ -28,6 +28,11 @@ struct GeneralSettingsView: View {
                 Toggle("Launch at login", isOn: $settings.launchAtLogin)
                 Toggle("Copy text to clipboard automatically", isOn: $settings.autoCopyToClipboard)
                 Toggle("Play sound on capture", isOn: $settings.playSound)
+                Toggle("Line-aware text ordering", isOn: $settings.lineAwareOCR)
+            } footer: {
+                Text("Line-aware ordering reads text left-to-right per line. Disable for column-based reading.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
 
             Section {

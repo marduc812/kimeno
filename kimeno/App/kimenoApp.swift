@@ -25,11 +25,7 @@ struct kimenoApp: App {
             MenuContentView(
                 screenCapture: screenCapture,
                 historyStore: historyStore,
-                settingsManager: settingsManager,
-                hotkeyManager: hotkeyManager,
-                hasSetupHotkeys: $hasSetupHotkeys,
-                performCapture: performCapture,
-                performShowHistory: performShowHistory
+                settingsManager: settingsManager
             )
         } label: {
             Text("κ")
@@ -48,42 +44,63 @@ struct kimenoApp: App {
         .onChange(of: settingsManager.historyShortcut) { _, newValue in
             hotkeyManager.updateShortcuts(capture: settingsManager.captureShortcut, history: newValue)
         }
+        .onChange(of: hasSetupHotkeys, initial: true) { _, _ in
+            if !hasSetupHotkeys {
+                hasSetupHotkeys = true
+                setupHotkeys()
+            }
+        }
     }
 
-    private func performCapture() {
-        historyStore.closeHistoryWindow()
-        settingsManager.closeSettingsWindow()
-        screenCapture.startAreaSelection()
+    private func setupHotkeys() {
+        hotkeyManager.updateShortcuts(capture: settingsManager.captureShortcut, history: settingsManager.historyShortcut)
+        hotkeyManager.onCapture = {
+            self.historyStore.closeHistoryWindow()
+            self.settingsManager.closeSettingsWindow()
+            self.screenCapture.startAreaSelection()
+        }
+        hotkeyManager.onHistory = {
+            self.settingsManager.closeSettingsWindow()
+            self.historyStore.showHistoryWindow()
+        }
+        hotkeyManager.startMonitoring()
     }
 
-    private func performShowHistory() {
-        settingsManager.closeSettingsWindow()
-        historyStore.showHistoryWindow()
-    }
 }
 
 struct MenuContentView: View {
     @ObservedObject var screenCapture: ScreenCaptureManager
     @ObservedObject var historyStore: CaptureHistoryStore
     @ObservedObject var settingsManager: SettingsManager
-    @ObservedObject var hotkeyManager: HotkeyManager
-    @Binding var hasSetupHotkeys: Bool
-    let performCapture: () -> Void
-    let performShowHistory: () -> Void
 
     var body: some View {
         Group {
-            Button("Capture", action: performCapture)
-                .modifier(DynamicKeyboardShortcut(shortcut: settingsManager.captureShortcut))
+            Button("Capture") {
+                DispatchQueue.main.async {
+                    historyStore.closeHistoryWindow()
+                    settingsManager.closeSettingsWindow()
+                    screenCapture.startAreaSelection()
+                }
+            }
+            .modifier(DynamicKeyboardShortcut(shortcut: settingsManager.captureShortcut))
 
-            Button("History", action: performShowHistory)
-                .modifier(DynamicKeyboardShortcut(shortcut: settingsManager.historyShortcut))
+            Button("History") {
+                DispatchQueue.main.async {
+                    NSApp.activate(ignoringOtherApps: true)
+                    settingsManager.closeSettingsWindow()
+                    historyStore.showHistoryWindow()
+                }
+            }
+            .modifier(DynamicKeyboardShortcut(shortcut: settingsManager.historyShortcut))
 
             Divider()
 
             Button("Settings...") {
-                historyStore.closeHistoryWindow()
-                settingsManager.showSettingsWindow()
+                DispatchQueue.main.async {
+                    NSApp.activate(ignoringOtherApps: true)
+                    historyStore.closeHistoryWindow()
+                    settingsManager.showSettingsWindow()
+                }
             }
             .keyboardShortcut(",", modifiers: .command)
 
@@ -94,25 +111,5 @@ struct MenuContentView: View {
             }
             .keyboardShortcut("q", modifiers: .command)
         }
-        .onAppear {
-            setupHotkeysIfNeeded()
-        }
-    }
-
-    private func setupHotkeysIfNeeded() {
-        guard !hasSetupHotkeys else { return }
-        hasSetupHotkeys = true
-
-        hotkeyManager.updateShortcuts(capture: settingsManager.captureShortcut, history: settingsManager.historyShortcut)
-        hotkeyManager.onCapture = { [weak historyStore, weak settingsManager, weak screenCapture] in
-            historyStore?.closeHistoryWindow()
-            settingsManager?.closeSettingsWindow()
-            screenCapture?.startAreaSelection()
-        }
-        hotkeyManager.onHistory = { [weak settingsManager, weak historyStore] in
-            settingsManager?.closeSettingsWindow()
-            historyStore?.showHistoryWindow()
-        }
-        hotkeyManager.startMonitoring()
     }
 }

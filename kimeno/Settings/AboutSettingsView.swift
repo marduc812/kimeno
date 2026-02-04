@@ -28,6 +28,14 @@ struct AboutSettingsView: View {
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
 
+            Link(destination: URL(string: "https://github.com/marduc812/kimeno")!) {
+                HStack(spacing: 4) {
+                    Image(systemName: "link")
+                    Text("GitHub")
+                }
+                .font(.caption)
+            }
+
             Spacer()
 
             Text("© 2026 Kimeno")
