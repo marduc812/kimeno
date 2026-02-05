@@ -25,7 +25,8 @@ struct kimenoApp: App {
             MenuContentView(
                 screenCapture: screenCapture,
                 historyStore: historyStore,
-                settingsManager: settingsManager
+                settingsManager: settingsManager,
+                hotkeyManager: hotkeyManager
             )
         } label: {
             Text("κ")
@@ -72,6 +73,7 @@ struct MenuContentView: View {
     @ObservedObject var screenCapture: ScreenCaptureManager
     @ObservedObject var historyStore: CaptureHistoryStore
     @ObservedObject var settingsManager: SettingsManager
+    @ObservedObject var hotkeyManager: HotkeyManager
 
     var body: some View {
         Group {
@@ -99,7 +101,7 @@ struct MenuContentView: View {
                 DispatchQueue.main.async {
                     NSApp.activate(ignoringOtherApps: true)
                     historyStore.closeHistoryWindow()
-                    settingsManager.showSettingsWindow()
+                    settingsManager.showSettingsWindow(hotkeyManager: hotkeyManager)
                 }
             }
             .keyboardShortcut(",", modifiers: .command)

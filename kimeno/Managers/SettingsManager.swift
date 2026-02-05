@@ -70,20 +70,20 @@ class SettingsManager: ObservableObject {
         historyShortcut = .defaultHistory
     }
 
-    func showSettingsWindow() {
+    func showSettingsWindow(hotkeyManager: HotkeyManager) {
         if let existingWindow = settingsWindow, existingWindow.isVisible {
             existingWindow.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
         }
 
-        let settingsView = SettingsView(settings: self)
+        let settingsView = SettingsView(settings: self, hotkeyManager: hotkeyManager)
         let hostingController = NSHostingController(rootView: settingsView)
 
         let window = NSWindow(contentViewController: hostingController)
         window.title = "Settings"
         window.styleMask = [.titled, .closable]
-        window.setContentSize(NSSize(width: 450, height: 320))
+        window.setContentSize(NSSize(width: 450, height: 400))
         window.center()
         window.isReleasedWhenClosed = false
 

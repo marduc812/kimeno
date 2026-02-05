@@ -7,6 +7,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var settings: SettingsManager
+    @ObservedObject var hotkeyManager: HotkeyManager
     @State private var selectedTab = 0
 
     var body: some View {
@@ -49,7 +50,7 @@ struct SettingsView: View {
                 if selectedTab == 0 {
                     GeneralSettingsView(settings: settings)
                 } else if selectedTab == 1 {
-                    ShortcutsSettingsView(settings: settings)
+                    ShortcutsSettingsView(settings: settings, hotkeyManager: hotkeyManager)
                 } else {
                     AboutSettingsView()
                 }
@@ -57,7 +58,7 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding()
         }
-        .frame(width: 450, height: 320)
+        .frame(width: 450, height: 400)
         .background(Color(NSColor.windowBackgroundColor))
     }
 }

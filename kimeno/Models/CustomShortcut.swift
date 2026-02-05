@@ -10,7 +10,7 @@ struct CustomShortcut: Codable, Equatable, Sendable {
     var keyCode: UInt16
     var modifiers: UInt
 
-    static nonisolated let defaultCapture = CustomShortcut(keyCode: 8, modifiers: 1179648)
+    static nonisolated let defaultCapture = CustomShortcut(keyCode: 19, modifiers: 1179648)
     static nonisolated let defaultHistory = CustomShortcut(keyCode: 4, modifiers: 1179648)
 
     var displayString: String {
