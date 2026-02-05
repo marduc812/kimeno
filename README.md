@@ -2,7 +2,7 @@
 
 A lightweight macOS menu bar OCR utility that captures screen areas and extracts text using Apple's Vision framework.
 
-![Kimeno Screenshot](assets/kimenodemo.gif)
+https://github.com/user-attachments/assets/2f3ff34f-0051-4c75-84a2-0a6cd3709cb7
 
 ## Features
 
