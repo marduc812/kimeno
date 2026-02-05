@@ -36,6 +36,10 @@ Carthage/Checkouts/
 # VS Code
 .vscode/
 
+# Claude Code
+.claude/
+CLAUDE.md
+
 # Archives
 *.ipa
 *.dSYM.zip
