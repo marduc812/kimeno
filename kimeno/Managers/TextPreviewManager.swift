@@ -54,6 +54,8 @@ class TextPreviewManager: ObservableObject {
     }
 
     func closePreviewWindow() {
+        // Resign first responder to release keyboard focus before closing
+        previewWindow?.makeFirstResponder(nil)
         previewWindow?.close()
         previewWindow = nil
         currentText = nil
