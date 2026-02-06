@@ -20,13 +20,17 @@ class OnboardingManager: ObservableObject {
 
     init() {
         checkAllPermissions()
-        checkIfShouldShowOnboarding()
     }
 
-    private func checkIfShouldShowOnboarding() {
+    private func updateOnboardingVisibility() {
         let hasCompleted = UserDefaults.standard.bool(forKey: hasCompletedOnboardingKey)
-        // Show onboarding if never completed OR if permissions are missing
-        showOnboarding = !hasCompleted || !allPermissionsGranted
+        // Skip onboarding if all permissions are already granted
+        if allPermissionsGranted {
+            showOnboarding = false
+        } else {
+            // Show onboarding if never completed or permissions are missing
+            showOnboarding = !hasCompleted
+        }
     }
 
     func checkAllPermissions() {
@@ -40,10 +44,12 @@ class OnboardingManager: ObservableObject {
                 _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
                 await MainActor.run {
                     self.hasScreenRecordingPermission = true
+                    self.updateOnboardingVisibility()
                 }
             } catch {
                 await MainActor.run {
                     self.hasScreenRecordingPermission = false
+                    self.updateOnboardingVisibility()
                 }
             }
         }
