@@ -116,7 +116,7 @@ class HotkeyManager: ObservableObject {
         HotkeyManager.sharedInstance = self
 
         // Register capture hotkey
-        var captureID = Self.captureHotkeyID
+        let captureID = Self.captureHotkeyID
         let captureModifiers = carbonModifiers(from: captureShortcut.modifiers)
 
         let captureStatus = RegisterEventHotKey(
@@ -131,7 +131,7 @@ class HotkeyManager: ObservableObject {
         print("[HotkeyManager] Registered capture hotkey: keyCode=\(captureShortcut.keyCode), modifiers=\(captureModifiers), status=\(captureStatus)")
 
         // Register history hotkey
-        var historyID = Self.historyHotkeyID
+        let historyID = Self.historyHotkeyID
         let historyModifiers = carbonModifiers(from: historyShortcut.modifiers)
 
         let historyStatus = RegisterEventHotKey(

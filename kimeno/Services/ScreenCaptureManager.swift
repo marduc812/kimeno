@@ -12,6 +12,7 @@ import Carbon
 @MainActor
 class ScreenCaptureManager: ObservableObject {
     @Published var lastExtractedText: String?
+    @Published var needsPermission: Bool = false
 
     private var selectionWindows: [SelectionWindow] = []
     private var selectionCoordinator: SelectionCoordinator?
@@ -30,8 +31,30 @@ class ScreenCaptureManager: ObservableObject {
         }
     }
 
+    func checkScreenRecordingPermission() async -> Bool {
+        do {
+            _ = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
+            return true
+        } catch {
+            return false
+        }
+    }
+
     func startAreaSelection() {
         closeAllWindows()
+
+        // Check permission first
+        Task {
+            let hasPermission = await checkScreenRecordingPermission()
+            if !hasPermission {
+                self.needsPermission = true
+                return
+            }
+            self.continueAreaSelection()
+        }
+    }
+
+    private func continueAreaSelection() {
 
         let screens = NSScreen.screens
         guard !screens.isEmpty else { return }

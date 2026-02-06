@@ -85,6 +85,7 @@ class OnboardingManager: ObservableObject {
 
     func resetOnboarding() {
         UserDefaults.standard.removeObject(forKey: hasCompletedOnboardingKey)
+        checkAllPermissions()
         showOnboarding = true
     }
 }

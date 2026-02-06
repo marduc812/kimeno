@@ -73,6 +73,14 @@ struct kimenoApp: App {
                 hotkeyManager.startMonitoring()
             }
         }
+        .onChange(of: screenCapture.needsPermission) { _, needsPermission in
+            if needsPermission {
+                // Reset the flag and show onboarding
+                screenCapture.needsPermission = false
+                onboardingManager.resetOnboarding()
+                showOnboardingWindow()
+            }
+        }
     }
 
     @State private var onboardingWindow: NSWindow?
