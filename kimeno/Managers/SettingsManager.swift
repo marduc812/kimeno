@@ -13,7 +13,6 @@ class SettingsManager: ObservableObject {
     @AppStorage("recognitionLanguage") var recognitionLanguage = "en-US"
     @AppStorage("lineAwareOCR") var lineAwareOCR = true
     @AppStorage("ocrAccuracy") var ocrAccuracy = "accurate"
-    @AppStorage("dismissPreviewOnOutsideClick") var dismissPreviewOnOutsideClick = true
 
     var launchAtLogin: Bool {
         get {

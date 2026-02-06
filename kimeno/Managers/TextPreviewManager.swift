@@ -10,7 +10,6 @@ class TextPreviewManager: ObservableObject {
     @Published var currentText: String?
 
     private var previewWindow: NSPanel?
-    private var clickOutsideMonitor: Any?
 
     func showPreviewWindow(text: String) {
         // Close existing window if any
@@ -49,30 +48,12 @@ class TextPreviewManager: ObservableObject {
 
         self.previewWindow = panel
 
-        clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
-            guard let self = self else { return }
-
-            let shouldDismiss = UserDefaults.standard.object(forKey: "dismissPreviewOnOutsideClick") as? Bool ?? true
-            if !shouldDismiss { return }
-
-            let clickLocation = NSEvent.mouseLocation
-            if let previewPanel = self.previewWindow, !previewPanel.frame.contains(clickLocation) {
-                DispatchQueue.main.async {
-                    self.closePreviewWindow()
-                }
-            }
-        }
-
         panel.orderFrontRegardless()
         panel.makeKey()
         NSApp.activate(ignoringOtherApps: true)
     }
 
     func closePreviewWindow() {
-        if let monitor = clickOutsideMonitor {
-            NSEvent.removeMonitor(monitor)
-            clickOutsideMonitor = nil
-        }
         previewWindow?.close()
         previewWindow = nil
         currentText = nil

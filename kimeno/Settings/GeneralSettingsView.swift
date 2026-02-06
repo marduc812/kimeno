@@ -34,7 +34,6 @@ struct GeneralSettingsView: View {
                 Toggle("Copy text to clipboard automatically", isOn: $settings.autoCopyToClipboard)
                 Toggle("Play sound on capture", isOn: $settings.playSound)
                 Toggle("Line-aware text ordering", isOn: $settings.lineAwareOCR)
-                Toggle("Dismiss preview when clicking outside", isOn: $settings.dismissPreviewOnOutsideClick)
             }
 
             Section {
