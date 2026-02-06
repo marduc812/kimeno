@@ -74,6 +74,10 @@ struct CustomShortcut: Codable, Equatable, Sendable {
     }
 
     func matches(keyCode eventKeyCode: UInt16, modifiers eventModifiers: UInt) -> Bool {
-        return eventKeyCode == keyCode && eventModifiers == modifiers
+        // Only compare the modifier keys we care about (command, shift, option, control)
+        let relevantModifiersMask: UInt = NSEvent.ModifierFlags([.command, .shift, .option, .control]).rawValue
+        let expectedModifiers = self.modifiers & relevantModifiersMask
+        let actualModifiers = eventModifiers & relevantModifiersMask
+        return eventKeyCode == keyCode && actualModifiers == expectedModifiers
     }
 }

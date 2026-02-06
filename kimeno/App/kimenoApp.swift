@@ -15,6 +15,7 @@ struct kimenoApp: App {
     @StateObject private var settingsManager = SettingsManager()
     @StateObject private var hotkeyManager = HotkeyManager()
     @StateObject private var textPreviewManager = TextPreviewManager()
+    @StateObject private var onboardingManager = OnboardingManager()
     @State private var hasSetupHotkeys = false
 
     init() {
@@ -58,8 +59,46 @@ struct kimenoApp: App {
             if !hasSetupHotkeys {
                 hasSetupHotkeys = true
                 setupHotkeys()
+                // Show onboarding if needed
+                if onboardingManager.showOnboarding {
+                    showOnboardingWindow()
+                }
             }
         }
+        .onChange(of: onboardingManager.showOnboarding) { _, showOnboarding in
+            if !showOnboarding {
+                closeOnboardingWindow()
+                // Restart hotkey monitoring after permissions are granted
+                hotkeyManager.checkAccessibilityPermission()
+                hotkeyManager.startMonitoring()
+            }
+        }
+    }
+
+    @State private var onboardingWindow: NSWindow?
+
+    private func showOnboardingWindow() {
+        if onboardingWindow != nil { return }
+
+        let onboardingView = OnboardingView(onboardingManager: onboardingManager)
+        let hostingController = NSHostingController(rootView: onboardingView)
+
+        let window = NSWindow(contentViewController: hostingController)
+        window.title = "Welcome to Kimeno"
+        window.styleMask = [.titled, .closable]
+        window.setContentSize(NSSize(width: 400, height: 480))
+        window.center()
+        window.isReleasedWhenClosed = false
+
+        self.onboardingWindow = window
+
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    private func closeOnboardingWindow() {
+        onboardingWindow?.close()
+        onboardingWindow = nil
     }
 
     private func setupHotkeys() {
