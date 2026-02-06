@@ -22,6 +22,11 @@ struct GeneralSettingsView: View {
         ("ko-KR", "Korean")
     ]
 
+    let ocrAccuracyOptions = [
+        ("fast", "Fast"),
+        ("accurate", "Accurate")
+    ]
+
     var body: some View {
         Form {
             Section {
@@ -35,6 +40,13 @@ struct GeneralSettingsView: View {
                 Picker("Recognition language:", selection: $settings.recognitionLanguage) {
                     ForEach(languages, id: \.0) { code, name in
                         Text(name).tag(code)
+                    }
+                }
+                .pickerStyle(.menu)
+
+                Picker("OCR accuracy:", selection: $settings.ocrAccuracy) {
+                    ForEach(ocrAccuracyOptions, id: \.0) { value, label in
+                        Text(label).tag(value)
                     }
                 }
                 .pickerStyle(.menu)

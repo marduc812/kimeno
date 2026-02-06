@@ -183,4 +183,7 @@ class SelectionView: NSView {
     }
 
     override var acceptsFirstResponder: Bool { true }
+
+    // Accept mouse clicks immediately without requiring app activation first
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 }

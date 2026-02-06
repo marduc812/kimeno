@@ -14,6 +14,7 @@ struct kimenoApp: App {
     @StateObject private var historyStore = CaptureHistoryStore()
     @StateObject private var settingsManager = SettingsManager()
     @StateObject private var hotkeyManager = HotkeyManager()
+    @StateObject private var textPreviewManager = TextPreviewManager()
     @State private var hasSetupHotkeys = false
 
     init() {
@@ -26,7 +27,8 @@ struct kimenoApp: App {
                 screenCapture: screenCapture,
                 historyStore: historyStore,
                 settingsManager: settingsManager,
-                hotkeyManager: hotkeyManager
+                hotkeyManager: hotkeyManager,
+                textPreviewManager: textPreviewManager
             )
         } label: {
             Text("κ")
@@ -35,7 +37,14 @@ struct kimenoApp: App {
         .menuBarExtraStyle(.menu)
         .onChange(of: screenCapture.lastExtractedText) { _, newText in
             if let text = newText {
+                // Always add to history
                 historyStore.addCapture(text: text)
+
+                // Show preview window if auto-copy is disabled
+                let autoCopy = UserDefaults.standard.object(forKey: "autoCopyToClipboard") as? Bool ?? true
+                if !autoCopy {
+                    textPreviewManager.showPreviewWindow(text: text)
+                }
                 screenCapture.lastExtractedText = nil
             }
         }
@@ -56,11 +65,13 @@ struct kimenoApp: App {
     private func setupHotkeys() {
         hotkeyManager.updateShortcuts(capture: settingsManager.captureShortcut, history: settingsManager.historyShortcut)
         hotkeyManager.onCapture = {
+            self.textPreviewManager.closePreviewWindow()
             self.historyStore.closeHistoryWindow()
             self.settingsManager.closeSettingsWindow()
             self.screenCapture.startAreaSelection()
         }
         hotkeyManager.onHistory = {
+            self.textPreviewManager.closePreviewWindow()
             self.settingsManager.closeSettingsWindow()
             self.historyStore.showHistoryWindow()
         }
@@ -74,11 +85,13 @@ struct MenuContentView: View {
     @ObservedObject var historyStore: CaptureHistoryStore
     @ObservedObject var settingsManager: SettingsManager
     @ObservedObject var hotkeyManager: HotkeyManager
+    @ObservedObject var textPreviewManager: TextPreviewManager
 
     var body: some View {
         Group {
             Button("Capture") {
                 DispatchQueue.main.async {
+                    textPreviewManager.closePreviewWindow()
                     historyStore.closeHistoryWindow()
                     settingsManager.closeSettingsWindow()
                     screenCapture.startAreaSelection()
@@ -88,6 +101,7 @@ struct MenuContentView: View {
 
             Button("History") {
                 DispatchQueue.main.async {
+                    textPreviewManager.closePreviewWindow()
                     NSApp.activate(ignoringOtherApps: true)
                     settingsManager.closeSettingsWindow()
                     historyStore.showHistoryWindow()
@@ -99,6 +113,7 @@ struct MenuContentView: View {
 
             Button("Settings...") {
                 DispatchQueue.main.async {
+                    textPreviewManager.closePreviewWindow()
                     NSApp.activate(ignoringOtherApps: true)
                     historyStore.closeHistoryWindow()
                     settingsManager.showSettingsWindow(hotkeyManager: hotkeyManager)

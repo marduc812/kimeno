@@ -12,6 +12,7 @@ class SettingsManager: ObservableObject {
     @AppStorage("playSound") var playSound = true
     @AppStorage("recognitionLanguage") var recognitionLanguage = "en-US"
     @AppStorage("lineAwareOCR") var lineAwareOCR = true
+    @AppStorage("ocrAccuracy") var ocrAccuracy = "accurate"
 
     var launchAtLogin: Bool {
         get {
