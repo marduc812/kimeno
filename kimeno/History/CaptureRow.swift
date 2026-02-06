@@ -15,7 +15,7 @@ struct CaptureRow: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(entry.title)
                     .font(.system(size: 13, weight: .medium))
@@ -29,16 +29,27 @@ struct CaptureRow: View {
             if hasMoreText {
                 Text(entry.text.components(separatedBy: .newlines).dropFirst().joined(separator: " "))
                     .font(.system(size: 11))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
                     .lineLimit(2)
             }
         }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 8)
-        .background(isHovered ? Color.primary.opacity(0.08) : Color.clear)
-        .cornerRadius(6)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background {
+            if isHovered {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .strokeBorder(.white.opacity(0.1), lineWidth: 0.5)
+                    )
+            }
+        }
+        .contentShape(RoundedRectangle(cornerRadius: 8))
         .onHover { hovering in
-            isHovered = hovering
+            withAnimation(.easeInOut(duration: 0.15)) {
+                isHovered = hovering
+            }
         }
         .onTapGesture {
             store.copyToClipboard(entry)

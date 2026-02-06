@@ -86,7 +86,7 @@ struct kimenoApp: App {
         let window = NSWindow(contentViewController: hostingController)
         window.title = "Welcome to Kimeno"
         window.styleMask = [.titled, .closable]
-        window.setContentSize(NSSize(width: 400, height: 480))
+        window.setContentSize(NSSize(width: 420, height: 500))
         window.center()
         window.isReleasedWhenClosed = false
 

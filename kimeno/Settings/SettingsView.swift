@@ -12,7 +12,8 @@ struct SettingsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack(spacing: 0) {
+            // Tab bar
+            HStack(spacing: 4) {
                 Spacer()
 
                 SettingsTabButton(
@@ -20,7 +21,9 @@ struct SettingsView: View {
                     icon: "gearshape",
                     isSelected: selectedTab == 0
                 ) {
-                    selectedTab = 0
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        selectedTab = 0
+                    }
                 }
 
                 SettingsTabButton(
@@ -28,7 +31,9 @@ struct SettingsView: View {
                     icon: "keyboard",
                     isSelected: selectedTab == 1
                 ) {
-                    selectedTab = 1
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        selectedTab = 1
+                    }
                 }
 
                 SettingsTabButton(
@@ -36,16 +41,20 @@ struct SettingsView: View {
                     icon: "info.circle",
                     isSelected: selectedTab == 2
                 ) {
-                    selectedTab = 2
+                    withAnimation(.easeInOut(duration: 0.15)) {
+                        selectedTab = 2
+                    }
                 }
 
                 Spacer()
             }
-            .padding(.top, 12)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
 
             Divider()
-                .padding(.top, 8)
+                .opacity(0.5)
 
+            // Content
             VStack {
                 if selectedTab == 0 {
                     GeneralSettingsView(settings: settings)
@@ -56,9 +65,15 @@ struct SettingsView: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding()
+            .padding(.horizontal, 8)
+            .padding(.bottom, 8)
         }
-        .frame(width: 450, height: 400)
-        .background(Color(NSColor.windowBackgroundColor))
+        .frame(width: 460, height: 420)
+        .background {
+            ZStack {
+                VisualEffectView(material: .sidebar, blendingMode: .behindWindow)
+                Color.primary.opacity(0.02)
+            }
+        }
     }
 }

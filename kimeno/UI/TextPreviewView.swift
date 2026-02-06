@@ -14,34 +14,38 @@ struct TextPreviewView: View {
             // Header
             HStack {
                 Image(systemName: "text.viewfinder")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
+                    .font(.system(size: 14))
                 Text("Captured Text")
-                    .font(.headline)
+                    .font(.system(size: 14, weight: .semibold))
                 Spacer()
                 Button(action: { manager.closePreviewWindow() }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
+                        .foregroundStyle(.tertiary)
                         .font(.system(size: 16))
                 }
                 .buttonStyle(.plain)
+                .contentShape(Circle())
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
 
             Divider()
+                .opacity(0.5)
                 .padding(.horizontal, 12)
 
             // Text editor
             TextEditor(text: $editableText)
                 .font(.system(size: 13))
-                .padding(8)
-                .background(Color(NSColor.textBackgroundColor))
-                .cornerRadius(8)
+                .scrollContentBackground(.hidden)
+                .padding(10)
+                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
                 .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.vertical, 12)
 
             Divider()
+                .opacity(0.5)
                 .padding(.horizontal, 12)
 
             // Actions
@@ -51,17 +55,29 @@ struct TextPreviewView: View {
                     manager.copyText(editableText)
                 } label: {
                     Label("Copy", systemImage: "doc.on.doc")
+                        .font(.system(size: 13, weight: .medium))
                 }
                 .buttonStyle(.borderedProminent)
+                .controlSize(.regular)
                 .keyboardShortcut("c", modifiers: .command)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 10)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
-        .frame(width: 400, height: 300)
-        .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+        .frame(width: 420, height: 320)
+        .background {
+            ZStack {
+                VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
+                Color.primary.opacity(0.02)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+        )
+        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
         .onAppear {
             editableText = manager.currentText ?? ""
         }

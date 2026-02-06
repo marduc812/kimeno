@@ -13,22 +13,28 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             // Header
-            VStack(spacing: 8) {
+            VStack(spacing: 10) {
                 Text("κ")
-                    .font(.system(size: 64, weight: .light))
-                    .foregroundColor(.accentColor)
+                    .font(.system(size: 72, weight: .light))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.accentColor, .accentColor.opacity(0.7)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
                 Text("Welcome to Kimeno")
-                    .font(.title)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 22, weight: .semibold))
                 Text("Let's set up the required permissions")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
             }
-            .padding(.top, 40)
-            .padding(.bottom, 30)
+            .padding(.top, 44)
+            .padding(.bottom, 32)
 
             Divider()
-                .padding(.horizontal, 20)
+                .opacity(0.5)
+                .padding(.horizontal, 24)
 
             // Permission steps
             VStack(spacing: 16) {
@@ -39,41 +45,52 @@ struct OnboardingView: View {
                     action: { onboardingManager.requestScreenRecordingPermission() }
                 )
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 24)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 28)
 
             Spacer()
 
             Divider()
-                .padding(.horizontal, 20)
+                .opacity(0.5)
+                .padding(.horizontal, 24)
 
             // Footer
-            VStack(spacing: 12) {
+            VStack(spacing: 14) {
                 if onboardingManager.allPermissionsGranted {
-                    Text("All permissions granted!")
-                        .font(.subheadline)
-                        .foregroundColor(.green)
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundStyle(.green)
+                        Text("All permissions granted!")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(.green)
+                    }
                 } else {
                     Text("Grant permissions to continue")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 13))
+                        .foregroundStyle(.secondary)
                 }
 
                 Button(action: {
                     onboardingManager.completeOnboarding()
                 }) {
                     Text(onboardingManager.allPermissionsGranted ? "Get Started" : "Skip for Now")
+                        .font(.system(size: 14, weight: .semibold))
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
                 .tint(onboardingManager.allPermissionsGranted ? .accentColor : .secondary)
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 20)
+            .padding(.horizontal, 24)
+            .padding(.vertical, 24)
         }
-        .frame(width: 400, height: 480)
-        .background(VisualEffectView(material: .windowBackground, blendingMode: .behindWindow))
+        .frame(width: 420, height: 500)
+        .background {
+            ZStack {
+                VisualEffectView(material: .sidebar, blendingMode: .behindWindow)
+                Color.primary.opacity(0.02)
+            }
+        }
     }
 }
 
@@ -84,24 +101,24 @@ struct PermissionRow: View {
     let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             // Status icon
             ZStack {
                 Circle()
-                    .fill(isGranted ? Color.green.opacity(0.15) : Color.orange.opacity(0.15))
-                    .frame(width: 40, height: 40)
+                    .fill(isGranted ? Color.green.opacity(0.12) : Color.orange.opacity(0.12))
+                    .frame(width: 44, height: 44)
                 Image(systemName: isGranted ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
-                    .font(.system(size: 20))
-                    .foregroundColor(isGranted ? .green : .orange)
+                    .font(.system(size: 22))
+                    .foregroundStyle(isGranted ? .green : .orange)
             }
 
             // Text
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
-                    .font(.headline)
+                    .font(.system(size: 14, weight: .semibold))
                 Text(description)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
             }
 
             Spacer()
@@ -116,8 +133,11 @@ struct PermissionRow: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color(NSColor.controlBackgroundColor))
-        .cornerRadius(10)
+        .padding(.vertical, 14)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .strokeBorder(.white.opacity(0.1), lineWidth: 0.5)
+        )
     }
 }

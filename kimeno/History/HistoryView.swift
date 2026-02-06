@@ -25,25 +25,26 @@ struct HistoryView: View {
             // Header
             HStack {
                 Image(systemName: "clock.arrow.circlepath")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
+                    .font(.system(size: 14))
                 Text("History")
-                    .font(.headline)
+                    .font(.system(size: 14, weight: .semibold))
                 Spacer()
                 Text("\(store.captures.count)")
-                    .font(.caption)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(Color.secondary.opacity(0.2))
-                    .cornerRadius(8)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(.ultraThinMaterial, in: Capsule())
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
+            .padding(.horizontal, 16)
+            .padding(.top, 16)
+            .padding(.bottom, 12)
 
             // Search bar
-            HStack {
+            HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.tertiary)
                     .font(.system(size: 12))
                 TextField("Search...", text: $searchText)
                     .textFieldStyle(.plain)
@@ -51,19 +52,19 @@ struct HistoryView: View {
                 if !searchText.isEmpty {
                     Button(action: { searchText = "" }) {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(.tertiary)
                             .font(.system(size: 12))
                     }
                     .buttonStyle(.plain)
                 }
             }
-            .padding(8)
-            .background(Color(NSColor.textBackgroundColor))
-            .cornerRadius(8)
+            .padding(10)
+            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
             .padding(.horizontal, 12)
-            .padding(.bottom, 8)
+            .padding(.bottom, 12)
 
             Divider()
+                .opacity(0.5)
                 .padding(.horizontal, 12)
 
             if filteredCaptures.isEmpty {
@@ -76,12 +77,13 @@ struct HistoryView: View {
                         }
                     }
                     .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
+                    .padding(.vertical, 6)
                 }
             }
 
             if !store.captures.isEmpty {
                 Divider()
+                    .opacity(0.5)
                     .padding(.horizontal, 12)
 
                 HStack {
@@ -90,19 +92,29 @@ struct HistoryView: View {
                         store.clearHistory()
                     } label: {
                         Label("Clear All", systemImage: "trash")
-                            .font(.system(size: 11))
+                            .font(.system(size: 11, weight: .medium))
                     }
                     .buttonStyle(.plain)
-                    .foregroundColor(.red)
+                    .foregroundStyle(.red.opacity(0.9))
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
             }
         }
-        .frame(width: 320, height: 400)
-        .background(VisualEffectView(material: .popover, blendingMode: .behindWindow))
-        .cornerRadius(12)
-        .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: 5)
+        .frame(width: 320, height: 420)
+        .background {
+            ZStack {
+                VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
+                Color.primary.opacity(0.02)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .strokeBorder(.white.opacity(0.2), lineWidth: 0.5)
+        )
+        .shadow(color: .black.opacity(0.15), radius: 20, x: 0, y: 10)
+        .shadow(color: .black.opacity(0.1), radius: 1, x: 0, y: 1)
         .onExitCommand {
             store.closeHistoryWindow()
         }
@@ -113,28 +125,34 @@ struct HistoryEmptyState: View {
     let searchText: String
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             Spacer()
 
             if searchText.isEmpty {
                 Text("κ")
-                    .font(.system(size: 56, weight: .light))
-                    .foregroundColor(.secondary.opacity(0.5))
+                    .font(.system(size: 52, weight: .light))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.secondary.opacity(0.4), .secondary.opacity(0.2)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
             } else {
                 Image(systemName: "magnifyingglass")
-                    .font(.system(size: 48, weight: .thin))
-                    .foregroundColor(.secondary.opacity(0.5))
+                    .font(.system(size: 44, weight: .thin))
+                    .foregroundStyle(.tertiary)
             }
 
-            VStack(spacing: 4) {
+            VStack(spacing: 6) {
                 Text(searchText.isEmpty ? "No captures yet" : "No matches found")
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.secondary)
+                    .foregroundStyle(.secondary)
 
                 if searchText.isEmpty {
                     Text("Use ⌘⇧C to capture text from screen")
                         .font(.system(size: 11))
-                        .foregroundColor(.secondary.opacity(0.7))
+                        .foregroundStyle(.tertiary)
                 }
             }
 
