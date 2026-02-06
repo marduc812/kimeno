@@ -6,24 +6,60 @@
 import AppKit
 import Carbon
 
+// Global callback function for Carbon event handler (must be at file scope)
+private func hotkeyEventHandler(
+    _ nextHandler: EventHandlerCallRef?,
+    _ event: EventRef?,
+    _ userData: UnsafeMutableRawPointer?
+) -> OSStatus {
+    guard let event = event else { return OSStatus(eventNotHandledErr) }
+
+    var hotkeyID = EventHotKeyID()
+    let err = GetEventParameter(
+        event,
+        EventParamName(kEventParamDirectObject),
+        EventParamType(typeEventHotKeyID),
+        nil,
+        MemoryLayout<EventHotKeyID>.size,
+        nil,
+        &hotkeyID
+    )
+
+    guard err == noErr else { return err }
+
+    DispatchQueue.main.async {
+        HotkeyManager.handleHotkey(id: hotkeyID.id, signature: hotkeyID.signature)
+    }
+
+    return noErr
+}
+
 @MainActor
 class HotkeyManager: ObservableObject {
     private var captureHotkeyRef: EventHotKeyRef?
     private var historyHotkeyRef: EventHotKeyRef?
+    private var escapeHotkeyRef: EventHotKeyRef?
     private var eventHandler: EventHandlerRef?
 
     @Published var hasAccessibilityPermission: Bool = true // Not needed for Carbon hotkeys
 
     var onCapture: (@MainActor () -> Void)?
     var onHistory: (@MainActor () -> Void)?
+    var onEscape: (@MainActor () -> Void)?
 
     private var captureShortcut: CustomShortcut = .defaultCapture
     private var historyShortcut: CustomShortcut = .defaultHistory
 
-    private static let captureHotkeyID = EventHotKeyID(signature: OSType(0x4B494D4F), id: 1) // "KIMO" + 1
-    private static let historyHotkeyID = EventHotKeyID(signature: OSType(0x4B494D4F), id: 2) // "KIMO" + 2
+    // Signature "KIMO" for main hotkeys
+    private static let mainSignature = OSType(0x4B494D4F)
+    private static let captureHotkeyID = EventHotKeyID(signature: mainSignature, id: 1)
+    private static let historyHotkeyID = EventHotKeyID(signature: mainSignature, id: 2)
+    private static let escapeHotkeyID = EventHotKeyID(signature: mainSignature, id: 3)
+
+    private static weak var sharedInstance: HotkeyManager?
 
     init() {
+        HotkeyManager.sharedInstance = self
         setupEventHandler()
     }
 
@@ -50,52 +86,35 @@ class HotkeyManager: ObservableObject {
     func updateShortcuts(capture: CustomShortcut, history: CustomShortcut) {
         captureShortcut = capture
         historyShortcut = history
-        print("[HotkeyManager] updateShortcuts - capture: keyCode=\(capture.keyCode), modifiers=\(capture.modifiers)")
 
         // Re-register hotkeys with new shortcuts
         startMonitoring()
     }
 
     private func setupEventHandler() {
-        // Set up the Carbon event handler
         var eventSpec = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
 
-        let handler: EventHandlerUPP = { _, event, _ -> OSStatus in
-            var hotkeyID = EventHotKeyID()
-            let err = GetEventParameter(
-                event,
-                EventParamName(kEventParamDirectObject),
-                EventParamType(typeEventHotKeyID),
-                nil,
-                MemoryLayout<EventHotKeyID>.size,
-                nil,
-                &hotkeyID
-            )
-
-            guard err == noErr else { return err }
-
-            DispatchQueue.main.async {
-                HotkeyManager.handleHotkey(id: hotkeyID.id)
-            }
-
-            return noErr
-        }
-
-        InstallEventHandler(
+        let status = InstallEventHandler(
             GetApplicationEventTarget(),
-            handler,
+            hotkeyEventHandler,
             1,
             &eventSpec,
             nil,
             &eventHandler
         )
+
+        print("[HotkeyManager] Installed event handler, status=\(status)")
     }
 
-    private static var sharedInstance: HotkeyManager?
-
-    private static func handleHotkey(id: UInt32) {
+    static func handleHotkey(id: UInt32, signature: OSType) {
         Task { @MainActor in
-            guard let manager = sharedInstance else { return }
+            guard let manager = sharedInstance else {
+                print("[HotkeyManager] No shared instance!")
+                return
+            }
+
+            // Only handle our hotkeys (signature "KIMO")
+            guard signature == mainSignature else { return }
 
             switch id {
             case 1:
@@ -104,8 +123,11 @@ class HotkeyManager: ObservableObject {
             case 2:
                 print("[HotkeyManager] History hotkey triggered")
                 manager.onHistory?()
+            case 3:
+                print("[HotkeyManager] Escape hotkey triggered")
+                manager.onEscape?()
             default:
-                break
+                print("[HotkeyManager] Unknown hotkey id: \(id)")
             }
         }
     }
@@ -116,34 +138,28 @@ class HotkeyManager: ObservableObject {
         HotkeyManager.sharedInstance = self
 
         // Register capture hotkey
-        let captureID = Self.captureHotkeyID
-        let captureModifiers = carbonModifiers(from: captureShortcut.modifiers)
-
         let captureStatus = RegisterEventHotKey(
             UInt32(captureShortcut.keyCode),
-            captureModifiers,
-            captureID,
+            carbonModifiers(from: captureShortcut.modifiers),
+            Self.captureHotkeyID,
             GetApplicationEventTarget(),
             0,
             &captureHotkeyRef
         )
 
-        print("[HotkeyManager] Registered capture hotkey: keyCode=\(captureShortcut.keyCode), modifiers=\(captureModifiers), status=\(captureStatus)")
+        print("[HotkeyManager] Registered capture hotkey: keyCode=\(captureShortcut.keyCode), status=\(captureStatus)")
 
         // Register history hotkey
-        let historyID = Self.historyHotkeyID
-        let historyModifiers = carbonModifiers(from: historyShortcut.modifiers)
-
         let historyStatus = RegisterEventHotKey(
             UInt32(historyShortcut.keyCode),
-            historyModifiers,
-            historyID,
+            carbonModifiers(from: historyShortcut.modifiers),
+            Self.historyHotkeyID,
             GetApplicationEventTarget(),
             0,
             &historyHotkeyRef
         )
 
-        print("[HotkeyManager] Registered history hotkey: keyCode=\(historyShortcut.keyCode), modifiers=\(historyModifiers), status=\(historyStatus)")
+        print("[HotkeyManager] Registered history hotkey: keyCode=\(historyShortcut.keyCode), status=\(historyStatus)")
     }
 
     func stopMonitoring() {
@@ -154,6 +170,31 @@ class HotkeyManager: ObservableObject {
         if let ref = historyHotkeyRef {
             UnregisterEventHotKey(ref)
             historyHotkeyRef = nil
+        }
+    }
+
+    // MARK: - Escape Hotkey (for selection mode)
+
+    func registerEscapeHotkey() {
+        unregisterEscapeHotkey()
+
+        let status = RegisterEventHotKey(
+            UInt32(53), // Escape key
+            0,          // No modifiers
+            Self.escapeHotkeyID,
+            GetApplicationEventTarget(),
+            0,
+            &escapeHotkeyRef
+        )
+
+        print("[HotkeyManager] Registered escape hotkey, status=\(status)")
+    }
+
+    func unregisterEscapeHotkey() {
+        if let ref = escapeHotkeyRef {
+            UnregisterEventHotKey(ref)
+            escapeHotkeyRef = nil
+            print("[HotkeyManager] Unregistered escape hotkey")
         }
     }
 

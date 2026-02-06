@@ -110,6 +110,9 @@ struct kimenoApp: App {
     }
 
     private func setupHotkeys() {
+        // Connect screenCapture to hotkeyManager for escape key handling
+        screenCapture.setHotkeyManager(hotkeyManager)
+
         hotkeyManager.updateShortcuts(capture: settingsManager.captureShortcut, history: settingsManager.historyShortcut)
         hotkeyManager.onCapture = {
             self.textPreviewManager.closePreviewWindow()

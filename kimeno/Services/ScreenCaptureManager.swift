@@ -7,7 +7,6 @@ import SwiftUI
 import ScreenCaptureKit
 import UserNotifications
 import Vision
-import Carbon
 
 @MainActor
 class ScreenCaptureManager: ObservableObject {
@@ -17,18 +16,16 @@ class ScreenCaptureManager: ObservableObject {
     private var selectionWindows: [SelectionWindow] = []
     private var selectionCoordinator: SelectionCoordinator?
     private var localEventMonitor: Any?
-    private var escapeHotkeyRef: EventHotKeyRef?
-
-    private static let escapeHotkeyID = EventHotKeyID(signature: OSType(0x4B494D45), id: 9999) // "KIME" + 9999
-    private static weak var sharedInstance: ScreenCaptureManager?
+    private weak var hotkeyManager: HotkeyManager?
 
     deinit {
         if let monitor = localEventMonitor {
             NSEvent.removeMonitor(monitor)
         }
-        if let hotkeyRef = escapeHotkeyRef {
-            UnregisterEventHotKey(hotkeyRef)
-        }
+    }
+
+    func setHotkeyManager(_ manager: HotkeyManager) {
+        self.hotkeyManager = manager
     }
 
     func checkScreenRecordingPermission() async -> Bool {
@@ -81,8 +78,11 @@ class ScreenCaptureManager: ObservableObject {
             selectionWindows.append(window)
         }
 
-        // Register global Escape hotkey using Carbon API (works in sandbox)
-        registerEscapeHotkey()
+        // Register escape hotkey via HotkeyManager
+        hotkeyManager?.onEscape = { [weak self] in
+            self?.closeAllWindows()
+        }
+        hotkeyManager?.registerEscapeHotkey()
 
         localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             if event.keyCode == 53 {
@@ -119,65 +119,10 @@ class ScreenCaptureManager: ObservableObject {
         }
     }
 
-    // MARK: - Escape Hotkey (Carbon API)
-
-    private func registerEscapeHotkey() {
-        unregisterEscapeHotkey()
-
-        ScreenCaptureManager.sharedInstance = self
-
-        // Install event handler if not already installed
-        var eventType = EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed))
-
-        InstallEventHandler(
-            GetApplicationEventTarget(),
-            { (_, event, _) -> OSStatus in
-                var hotkeyID = EventHotKeyID()
-                GetEventParameter(
-                    event,
-                    EventParamName(kEventParamDirectObject),
-                    EventParamType(typeEventHotKeyID),
-                    nil,
-                    MemoryLayout<EventHotKeyID>.size,
-                    nil,
-                    &hotkeyID
-                )
-
-                if hotkeyID.id == 9999 {
-                    DispatchQueue.main.async {
-                        ScreenCaptureManager.sharedInstance?.closeAllWindows()
-                    }
-                }
-                return noErr
-            },
-            1,
-            &eventType,
-            nil,
-            nil
-        )
-
-        // Register Escape key (keyCode 53) with no modifiers
-        let hotkeyID = Self.escapeHotkeyID
-        RegisterEventHotKey(
-            UInt32(53), // Escape key
-            0,          // No modifiers
-            hotkeyID,
-            GetApplicationEventTarget(),
-            0,
-            &escapeHotkeyRef
-        )
-    }
-
-    private func unregisterEscapeHotkey() {
-        if let hotkeyRef = escapeHotkeyRef {
-            UnregisterEventHotKey(hotkeyRef)
-            escapeHotkeyRef = nil
-        }
-    }
-
     private func closeAllWindows() {
         // Unregister escape hotkey
-        unregisterEscapeHotkey()
+        hotkeyManager?.unregisterEscapeHotkey()
+        hotkeyManager?.onEscape = nil
 
         if let monitor = localEventMonitor {
             NSEvent.removeMonitor(monitor)
