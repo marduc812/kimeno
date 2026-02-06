@@ -5,11 +5,9 @@
 
 import SwiftUI
 import ScreenCaptureKit
-import ApplicationServices
 
 @MainActor
 class OnboardingManager: ObservableObject {
-    @Published var hasAccessibilityPermission = false
     @Published var hasScreenRecordingPermission = false
     @Published var showOnboarding = false
 
@@ -17,7 +15,7 @@ class OnboardingManager: ObservableObject {
     private let hasCompletedOnboardingKey = "hasCompletedOnboarding"
 
     var allPermissionsGranted: Bool {
-        hasAccessibilityPermission && hasScreenRecordingPermission
+        hasScreenRecordingPermission
     }
 
     init() {
@@ -32,12 +30,7 @@ class OnboardingManager: ObservableObject {
     }
 
     func checkAllPermissions() {
-        checkAccessibilityPermission()
         checkScreenRecordingPermission()
-    }
-
-    func checkAccessibilityPermission() {
-        hasAccessibilityPermission = AXIsProcessTrusted()
     }
 
     func checkScreenRecordingPermission() {
@@ -54,12 +47,6 @@ class OnboardingManager: ObservableObject {
                 }
             }
         }
-    }
-
-    func requestAccessibilityPermission() {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        AXIsProcessTrustedWithOptions(options)
-        startPermissionPolling()
     }
 
     func requestScreenRecordingPermission() {

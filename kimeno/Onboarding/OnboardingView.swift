@@ -33,15 +33,8 @@ struct OnboardingView: View {
             // Permission steps
             VStack(spacing: 16) {
                 PermissionRow(
-                    title: "Accessibility",
-                    description: "Required for global keyboard shortcuts",
-                    isGranted: onboardingManager.hasAccessibilityPermission,
-                    action: { onboardingManager.requestAccessibilityPermission() }
-                )
-
-                PermissionRow(
                     title: "Screen Recording",
-                    description: "Required to capture screen content",
+                    description: "Required to capture screen content for OCR",
                     isGranted: onboardingManager.hasScreenRecordingPermission,
                     action: { onboardingManager.requestScreenRecordingPermission() }
                 )
