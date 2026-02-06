@@ -138,8 +138,9 @@ class ScreenCaptureManager: ObservableObject {
         )
 
         // Perform capture on background thread
+        // Use .default priority to match SCScreenshotManager's internal QoS and avoid priority inversion
         do {
-            let croppedImage: CGImage = try await Task.detached(priority: .userInitiated) {
+            let croppedImage: CGImage = try await Task.detached(priority: .medium) {
                 let content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
 
                 guard let display = content.displays.first(where: { $0.displayID == screenDisplayID }) ?? content.displays.first else {
@@ -193,7 +194,8 @@ class ScreenCaptureManager: ObservableObject {
         let lineAwareOCR = UserDefaults.standard.object(forKey: "lineAwareOCR") as? Bool ?? true
 
         // Perform OCR on background thread
-        let extractedText: String? = await Task.detached(priority: .userInitiated) {
+        // Use .medium priority to avoid potential priority inversion with Vision framework
+        let extractedText: String? = await Task.detached(priority: .medium) {
             let requestHandler = VNImageRequestHandler(cgImage: image, options: [:])
 
             var resultText: String?

@@ -1,3 +1,6 @@
+![kimeno logo](assets/small_logo.png)
+
+
 # Kimeno
 
 A lightweight macOS menu bar OCR utility that captures screen areas and extracts text using Apple's Vision framework.
@@ -30,7 +33,7 @@ https://github.com/user-attachments/assets/2f3ff34f-0051-4c75-84a2-0a6cd3709cb7
 | Requirement | Minimum |
 |-------------|---------|
 | **macOS** | 13.0 (Ventura) or later |
-| **Permissions** | Screen Recording |
+| **Permissions** | Screen Recording, Accessibility |
 | **Architecture** | Apple Silicon & Intel |
 
 ## Installation
@@ -88,12 +91,17 @@ Customize global hotkeys for capture and history access.
 
 ## Permissions
 
-Kimeno requires **Screen Recording** permission to capture screen content.
+Kimeno requires the following permissions:
 
-On first launch, macOS will prompt you to grant this permission. You can also enable it manually:
+| Permission | Purpose |
+|------------|---------|
+| **Screen Recording** | Capture screen content for OCR |
+| **Accessibility** | Detect global keyboard shortcuts |
 
-1. Open **System Settings** > **Privacy & Security** > **Screen Recording**
-2. Enable the toggle for **Kimeno**
+On first launch, macOS will prompt you to grant these permissions. You can also enable them manually:
+
+1. Open **System Settings** > **Privacy & Security** > **Screen Recording** and enable **Kimeno**
+2. Open **System Settings** > **Privacy & Security** > **Accessibility** and enable **Kimeno**
 
 ## Project Structure
 
