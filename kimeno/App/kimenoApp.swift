@@ -128,42 +128,50 @@ struct MenuContentView: View {
 
     var body: some View {
         Group {
-            Button("Capture") {
+            Button {
                 DispatchQueue.main.async {
                     textPreviewManager.closePreviewWindow()
                     historyStore.closeHistoryWindow()
                     settingsManager.closeSettingsWindow()
                     screenCapture.startAreaSelection()
                 }
+            } label: {
+                Label("Capture", systemImage: "text.viewfinder")
             }
             .modifier(DynamicKeyboardShortcut(shortcut: settingsManager.captureShortcut))
 
-            Button("History") {
+            Button {
                 DispatchQueue.main.async {
                     textPreviewManager.closePreviewWindow()
                     NSApp.activate(ignoringOtherApps: true)
                     settingsManager.closeSettingsWindow()
                     historyStore.showHistoryWindow()
                 }
+            } label: {
+                Label("History", systemImage: "clock.arrow.circlepath")
             }
             .modifier(DynamicKeyboardShortcut(shortcut: settingsManager.historyShortcut))
 
             Divider()
 
-            Button("Settings...") {
+            Button {
                 DispatchQueue.main.async {
                     textPreviewManager.closePreviewWindow()
                     NSApp.activate(ignoringOtherApps: true)
                     historyStore.closeHistoryWindow()
                     settingsManager.showSettingsWindow(hotkeyManager: hotkeyManager)
                 }
+            } label: {
+                Label("Settings...", systemImage: "gearshape")
             }
             .keyboardShortcut(",", modifiers: .command)
 
             Divider()
 
-            Button("Quit") {
+            Button {
                 NSApplication.shared.terminate(nil)
+            } label: {
+                Label("Quit", systemImage: "power")
             }
             .keyboardShortcut("q", modifiers: .command)
         }

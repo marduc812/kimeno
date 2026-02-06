@@ -24,6 +24,8 @@ struct HistoryView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
+                Image(systemName: "clock.arrow.circlepath")
+                    .foregroundColor(.secondary)
                 Text("History")
                     .font(.headline)
                 Spacer()
@@ -84,12 +86,14 @@ struct HistoryView: View {
 
                 HStack {
                     Spacer()
-                    Button("Clear All") {
+                    Button {
                         store.clearHistory()
+                    } label: {
+                        Label("Clear All", systemImage: "trash")
+                            .font(.system(size: 11))
                     }
                     .buttonStyle(.plain)
                     .foregroundColor(.red)
-                    .font(.system(size: 11))
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)

@@ -44,12 +44,16 @@ struct CaptureRow: View {
             store.copyToClipboard(entry)
         }
         .contextMenu {
-            Button("Copy") {
+            Button {
                 store.copyToClipboard(entry)
+            } label: {
+                Label("Copy", systemImage: "doc.on.doc")
             }
             Divider()
-            Button("Delete", role: .destructive) {
+            Button(role: .destructive) {
                 store.deleteCapture(id: entry.id)
+            } label: {
+                Label("Delete", systemImage: "trash")
             }
         }
     }

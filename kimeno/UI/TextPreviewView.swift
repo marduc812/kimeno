@@ -13,6 +13,8 @@ struct TextPreviewView: View {
         VStack(spacing: 0) {
             // Header
             HStack {
+                Image(systemName: "text.viewfinder")
+                    .foregroundColor(.secondary)
                 Text("Captured Text")
                     .font(.headline)
                 Spacer()
@@ -45,9 +47,12 @@ struct TextPreviewView: View {
             // Actions
             HStack {
                 Spacer()
-                Button("Copy") {
+                Button {
                     manager.copyText(editableText)
+                } label: {
+                    Label("Copy", systemImage: "doc.on.doc")
                 }
+                .buttonStyle(.borderedProminent)
                 .keyboardShortcut("c", modifiers: .command)
             }
             .padding(.horizontal, 12)

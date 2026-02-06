@@ -51,6 +51,10 @@ class TextPreviewManager: ObservableObject {
 
         clickOutsideMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             guard let self = self else { return }
+
+            let shouldDismiss = UserDefaults.standard.object(forKey: "dismissPreviewOnOutsideClick") as? Bool ?? true
+            if !shouldDismiss { return }
+
             let clickLocation = NSEvent.mouseLocation
             if let previewPanel = self.previewWindow, !previewPanel.frame.contains(clickLocation) {
                 DispatchQueue.main.async {
