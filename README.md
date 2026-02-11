@@ -1,18 +1,20 @@
-![kimeno logo](assets/small_logo.png)
+<div>
+  <img width="150" height="150" align="left" src="assets/small_logo.png" alt=""/>
+  <br>
+  <h1>Kimeno</h1>
+  <p>A lightweight macOS menu bar OCR utility that captures screen areas and extracts text using Apple's Vision framework.</p>
+</div>
 
 
-# Kimeno
-
-A lightweight macOS menu bar OCR utility that captures screen areas and extracts text using Apple's Vision framework.
-
-https://github.com/user-attachments/assets/2f3ff34f-0051-4c75-84a2-0a6cd3709cb7
+https://github.com/user-attachments/assets/1ce8e2f5-3c4f-4365-a2ba-2ad58d200ddc
 
 ## Features
 
-- **Quick Screen Capture** - Select any area on screen with a simple drag gesture
+- **Quick Screen Capture** - Select any area on screen with a simple drag gesture and crosshair cursor
 - **Instant OCR** - Text extraction powered by Apple's Vision framework
 - **Multi-Display Support** - Works seamlessly across multiple monitors with Retina scaling
 - **Capture History** - Searchable history of past captures (up to 100 entries)
+- **Source App Tracking** - Each capture records which application was active, displayed with the app's icon in history
 - **Auto-Copy to Clipboard** - Extracted text is automatically copied for immediate use
 - **Customizable Shortcuts** - Configure global hotkeys for capture and history access
 - **Multi-Language OCR** - Supports 11 languages including English, German, French, Spanish, Chinese, Japanese, and Korean
@@ -22,10 +24,8 @@ https://github.com/user-attachments/assets/2f3ff34f-0051-4c75-84a2-0a6cd3709cb7
 
 ## Screenshots
 
-#### History
 ![History](assets/history.png) 
 
-#### Settings
 ![Settings](assets/settings.png) 
 
 ## Requirements
