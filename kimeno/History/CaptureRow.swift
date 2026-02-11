@@ -10,6 +10,19 @@ struct CaptureRow: View {
     let store: CaptureHistoryStore
     @State private var isHovered = false
 
+    private static func appIcon(for appName: String) -> NSImage? {
+        guard let app = NSWorkspace.shared.runningApplications.first(where: { $0.localizedName == appName }),
+              let url = app.bundleURL else {
+            // Fallback: search in /Applications
+            let path = "/Applications/\(appName).app"
+            if FileManager.default.fileExists(atPath: path) {
+                return NSWorkspace.shared.icon(forFile: path)
+            }
+            return nil
+        }
+        return NSWorkspace.shared.icon(forFile: url.path)
+    }
+
     private var hasMoreText: Bool {
         entry.text.count > entry.title.count || entry.text.contains("\n")
     }
@@ -74,9 +87,24 @@ struct CaptureRow: View {
 
                 Divider()
 
-                Text(entry.timestamp, format: .dateTime.year().month().day().hour().minute())
-                    .font(.system(size: 10))
-                    .foregroundStyle(.secondary)
+                HStack(spacing: 4) {
+                    if let appName = entry.sourceApplication {
+                        if let appIcon = Self.appIcon(for: appName) {
+                            Image(nsImage: appIcon)
+                                .resizable()
+                                .frame(width: 14, height: 14)
+                        }
+                        Text(appName)
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.secondary)
+                    }
+
+                    Spacer()
+
+                    Text(entry.timestamp, format: .dateTime.year().month().day().hour().minute())
+                        .font(.system(size: 10))
+                        .foregroundStyle(.secondary)
+                }
             }
             .padding(10)
             .frame(width: 240, alignment: .leading)

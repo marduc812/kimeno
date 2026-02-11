@@ -60,7 +60,7 @@ struct kimenoApp: App {
         .onChange(of: screenCapture.lastExtractedText) { _, newText in
             if let text = newText {
                 // Always add to history
-                historyStore.addCapture(text: text)
+                historyStore.addCapture(text: text, sourceApplication: screenCapture.lastSourceApp)
 
                 // Show preview window if auto-copy is disabled
                 let autoCopy = UserDefaults.standard.object(forKey: "autoCopyToClipboard") as? Bool ?? true

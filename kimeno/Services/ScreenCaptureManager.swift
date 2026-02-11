@@ -11,6 +11,7 @@ import Vision
 @MainActor
 class ScreenCaptureManager: ObservableObject {
     @Published var lastExtractedText: String?
+    @Published var lastSourceApp: String?
     @Published var needsPermission: Bool = false
 
     private var selectionWindows: [SelectionWindow] = []
@@ -39,6 +40,9 @@ class ScreenCaptureManager: ObservableObject {
 
     func startAreaSelection() {
         closeAllWindows()
+
+        // Capture the frontmost app before showing overlay (overlay makes Kimeno frontmost)
+        lastSourceApp = NSWorkspace.shared.frontmostApplication?.localizedName
 
         // Check permission first
         Task {

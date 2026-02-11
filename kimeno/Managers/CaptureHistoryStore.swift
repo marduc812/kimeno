@@ -17,8 +17,8 @@ class CaptureHistoryStore: ObservableObject {
         loadHistory()
     }
 
-    func addCapture(text: String) {
-        let entry = CaptureEntry(text: text)
+    func addCapture(text: String, sourceApplication: String? = nil) {
+        let entry = CaptureEntry(text: text, sourceApplication: sourceApplication)
         captures.insert(entry, at: 0)
 
         if captures.count > maxEntries {
