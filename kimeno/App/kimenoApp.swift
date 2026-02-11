@@ -8,14 +8,35 @@
 import SwiftUI
 import UserNotifications
 
+extension Notification.Name {
+    static let appShouldShowMenu = Notification.Name("appShouldShowMenu")
+}
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    var onCapture: (() -> Void)?
+    var onHistory: (() -> Void)?
+    var onSettings: (() -> Void)?
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        NotificationCenter.default.post(name: .appShouldShowMenu, object: nil)
+        return false
+    }
+
+    @objc func menuCapture() { onCapture?() }
+    @objc func menuHistory() { onHistory?() }
+    @objc func menuSettings() { onSettings?() }
+}
+
 @main
 struct kimenoApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var screenCapture = ScreenCaptureManager()
     @StateObject private var historyStore = CaptureHistoryStore()
     @StateObject private var settingsManager = SettingsManager()
     @StateObject private var hotkeyManager = HotkeyManager()
     @StateObject private var textPreviewManager = TextPreviewManager()
     @StateObject private var onboardingManager = OnboardingManager()
+    @AppStorage("showMenuBarIcon") private var showMenuBarIcon = true
     @State private var hasSetupHotkeys = false
 
     init() {
@@ -23,7 +44,7 @@ struct kimenoApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra {
+        MenuBarExtra(isInserted: $showMenuBarIcon) {
             MenuContentView(
                 screenCapture: screenCapture,
                 historyStore: historyStore,
@@ -59,6 +80,14 @@ struct kimenoApp: App {
             if !hasSetupHotkeys {
                 hasSetupHotkeys = true
                 setupHotkeys()
+                setupAppDelegate()
+                NotificationCenter.default.addObserver(
+                    forName: .appShouldShowMenu,
+                    object: nil,
+                    queue: .main
+                ) { _ in
+                    showPopupMenu()
+                }
                 // Show onboarding if needed
                 if onboardingManager.showOnboarding {
                     showOnboardingWindow()
@@ -107,6 +136,72 @@ struct kimenoApp: App {
     private func closeOnboardingWindow() {
         onboardingWindow?.close()
         onboardingWindow = nil
+    }
+
+    private func setupAppDelegate() {
+        appDelegate.onCapture = {
+            self.textPreviewManager.closePreviewWindow()
+            self.historyStore.closeHistoryWindow()
+            self.settingsManager.closeSettingsWindow()
+            self.screenCapture.startAreaSelection()
+        }
+        appDelegate.onHistory = {
+            self.textPreviewManager.closePreviewWindow()
+            self.settingsManager.closeSettingsWindow()
+            NSApp.activate(ignoringOtherApps: true)
+            self.historyStore.showHistoryWindow()
+        }
+        appDelegate.onSettings = {
+            self.textPreviewManager.closePreviewWindow()
+            self.historyStore.closeHistoryWindow()
+            NSApp.activate(ignoringOtherApps: true)
+            self.settingsManager.showSettingsWindow(hotkeyManager: self.hotkeyManager)
+        }
+    }
+
+    private func showPopupMenu() {
+        // Try to click the menu bar button first (when icon is visible)
+        for window in NSApp.windows {
+            guard let contentView = window.contentView else { continue }
+            for subview in contentView.subviews {
+                if let button = subview as? NSStatusBarButton {
+                    button.performClick(nil)
+                    return
+                }
+            }
+        }
+
+        // Fallback: show a native popup menu at the mouse location
+        NSApp.activate(ignoringOtherApps: true)
+
+        let menu = NSMenu()
+
+        let captureItem = NSMenuItem(title: "Capture", action: #selector(AppDelegate.menuCapture), keyEquivalent: "")
+        captureItem.image = NSImage(systemSymbolName: "text.viewfinder", accessibilityDescription: nil)
+        captureItem.target = appDelegate
+        menu.addItem(captureItem)
+
+        let historyItem = NSMenuItem(title: "History", action: #selector(AppDelegate.menuHistory), keyEquivalent: "")
+        historyItem.image = NSImage(systemSymbolName: "clock.arrow.circlepath", accessibilityDescription: nil)
+        historyItem.target = appDelegate
+        menu.addItem(historyItem)
+
+        menu.addItem(.separator())
+
+        let settingsItem = NSMenuItem(title: "Settings...", action: #selector(AppDelegate.menuSettings), keyEquivalent: "")
+        settingsItem.image = NSImage(systemSymbolName: "gearshape", accessibilityDescription: nil)
+        settingsItem.target = appDelegate
+        menu.addItem(settingsItem)
+
+        menu.addItem(.separator())
+
+        let quitItem = NSMenuItem(title: "Quit", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        quitItem.image = NSImage(systemSymbolName: "power", accessibilityDescription: nil)
+        menu.addItem(quitItem)
+
+        // Show at mouse location in screen coordinates
+        let mouseLocation = NSEvent.mouseLocation
+        menu.popUp(positioning: nil, at: mouseLocation, in: nil)
     }
 
     private func setupHotkeys() {

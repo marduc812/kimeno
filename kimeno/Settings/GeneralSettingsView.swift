@@ -7,6 +7,7 @@ import SwiftUI
 
 struct GeneralSettingsView: View {
     @ObservedObject var settings: SettingsManager
+    @AppStorage("showMenuBarIcon") private var showMenuBarIcon = true
 
     let languages = [
         ("en-US", "English (US)"),
@@ -31,6 +32,12 @@ struct GeneralSettingsView: View {
         Form {
             Section {
                 Toggle("Launch at login", isOn: $settings.launchAtLogin)
+                Toggle("Show menu bar icon", isOn: $showMenuBarIcon)
+                if !showMenuBarIcon {
+                    Text("Use your capture hotkey to interact with Kimeno. Re-launch the app to restore the icon.")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 Toggle("Copy text to clipboard automatically", isOn: $settings.autoCopyToClipboard)
                 Toggle("Play sound on capture", isOn: $settings.playSound)
                 Toggle("Line-aware text ordering", isOn: $settings.lineAwareOCR)
