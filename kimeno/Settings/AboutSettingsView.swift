@@ -24,7 +24,7 @@ struct AboutSettingsView: View {
                 Text("Kimeno")
                     .font(.system(size: 20, weight: .semibold))
 
-                Text("Version 1.0.0")
+                Text("Version 1.0.1")
                     .font(.system(size: 12))
                     .foregroundStyle(.secondary)
                     .padding(.horizontal, 10)
