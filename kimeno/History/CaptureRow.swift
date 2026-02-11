@@ -65,6 +65,22 @@ struct CaptureRow: View {
                 isHovered = hovering
             }
         }
+        .popover(isPresented: $isHovered, attachmentAnchor: .rect(.bounds), arrowEdge: .trailing) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(entry.text)
+                    .font(.system(size: 11, design: .monospaced))
+                    .lineLimit(5)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Divider()
+
+                Text(entry.timestamp, format: .dateTime.year().month().day().hour().minute())
+                    .font(.system(size: 10))
+                    .foregroundStyle(.secondary)
+            }
+            .padding(10)
+            .frame(width: 240, alignment: .leading)
+        }
         .onTapGesture {
             store.copyToClipboard(entry)
         }
