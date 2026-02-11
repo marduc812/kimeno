@@ -182,6 +182,10 @@ class SelectionView: NSView {
         }
     }
 
+    override func resetCursorRects() {
+        addCursorRect(bounds, cursor: .crosshair)
+    }
+
     override var acceptsFirstResponder: Bool { true }
 
     // Accept mouse clicks immediately without requiring app activation first
